@@ -1,7 +1,8 @@
 ﻿## Title: LibZone
 ## Author: Baertram
-## APIVersion: 100024 100025
-## Version: 0.2
+## AddOnVersion: 003
+## APIVersion: 100025 100026
+## Version: 0.3
 ## SavedVariables: LibZone_SV_Data LibZone_Localized_SV_Data
 ## Description: Collects and provides zone information from the available zones/subzones ingame
 ## DependsOn: LibStub
@@ -9,5 +10,5 @@
 ## This Add-On is not created by, affiliated with or sponsored by ZeniMax Media Inc. or its affiliates. The Elder Scrolls® and related logos are registered trademarks or trademarks of ZeniMax Media Inc. in the United States and/or other countries. All rights reserved.
 
 libs/LibStub.lua
-LibZone_Data.lua
 LibZone.lua
+LibZone_Data.lua

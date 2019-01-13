@@ -31,11 +31,11 @@
 local libZone = {}
 --Addon/Library info
 libZone.name        = "LibZone"
-libZone.version     = 0.2
+libZone.version     = 0.3
 --SavedVariables info
 libZone.svDataName  = "LibZone_SV_Data"
 libZone.svLocalizedDataName = "LibZone_Localized_SV_Data"
-libZone.svVersion   = 0.2
+libZone.svVersion   = 0.3
 libZone.maxZoneIds  = 3000 -- API100025, Murkmire
 
 ------------------------------------------------------------------------
@@ -47,7 +47,7 @@ if not lib then return end -- the same or newer version of this lib is already l
 ------------------------------------------------------------------------
 -- 	Global variables
 ------------------------------------------------------------------------
-if LibZone == nil then LibZone = {} end
+LibZone = LibZone or {}
 --Assign LibStub created library instance of LibZone (lib) to global variable (LibZone)
 LibZone = lib
 LibZone.libraryInfo = libZone
@@ -159,7 +159,7 @@ end
 ------------------------------------------------------------------------
 -- 	Library functions
 ------------------------------------------------------------------------
---Check and get all zone'S data and saved them to the SavedVariables
+--Check and get all zone's data and save them to the SavedVariables
 --Parameters:
 -->reBuildNew: Boolean [true=Rebuild the zoneData for all zones, even if they already exist / false=Skip already existing zoneIds]
 -->doReloadUI: Boolean [true=If at least one zoneId was added/updated, do a ReloadUI() at the end to update the SavaedVariables now / false=No autoamtic ReloadUI()]
@@ -393,6 +393,37 @@ function lib:GetZoneDataByIds(zoneIdsTable, language)
     return retZoneDataTable
 end
 
+--Get the localized zone names matching to a localized search string
+-->searchStr: The String with the search value of a zone name (using searchLanguage)
+-->searchLanguage: The langauge to search the searchStr variable in Format example: "en". Can be nil (<nilable>)! If the searchLangauge is nil the client language will be taken as searchLanguage.
+-->returnLanguage: The language for the translated results. e.g. you search for "Ostmar" with search language "de" and the return language "en". The result will be the "Eastmarch" zone.
+--->Returns table containing the zoneId as table key and the localized (in language: returnLanguage) full zone name, matching to the search string, as table value
+function lib:GetZoneNameByLocalizedSearchString(searchStr, searchLanguage, returnLanguage)
+    assert (searchStr ~= nil and searchStr ~= "", "[LibZone:GetZoneNameByLocalizedSearchString]Error: Missing parameter \"searchStr\"!")
+    assert (returnLanguage ~= nil and type(returnLanguage) == "string", "[LibZone:GetZoneNameByLocalizedSearchString]Error: Missing or wrong parameter \"returnLanguage\"!")
+    searchLanguage = searchLanguage or lib.currentClientLanguage
+    assert (searchLanguage ~= returnLanguage, "[LibZone:GetZoneNameByLocalizedSearchString]Error: Search language and returning language must be different!")
+    local retZoneIdsTable = {}
+    local retZoneLocalizedZoneNamesTable = {}
+    local localizedSearchZoneData = lib.localizedZoneData[searchLanguage]
+    assert (localizedSearchZoneData ~= nil, "[LibZone:GetZoneNameByLocalizedSearchString]Error: Missing localized search zone data with language \"" .. tostring(searchLanguage) .. "\"!")
+    local zoneReturnLocalizedData = lib.localizedZoneData[returnLanguage]
+    assert (zoneReturnLocalizedData ~= nil, "[LibZone:GetZoneNameByLocalizedSearchString]Error: Missing localized return zone data with language \"" .. tostring(returnLanguage) .. "\"!")
+    for zoneId, zoneName in pairs(localizedSearchZoneData) do
+        if zoneName ~= "" and zo_plainstrfind(zoneName:lower(), searchStr:lower()) then
+            table.insert(retZoneIdsTable, zoneId)
+        end
+    end
+    if retZoneIdsTable ~= nil and #retZoneIdsTable > 0 then
+        for _, zoneId in ipairs(retZoneIdsTable) do
+            local returnLocalizedZoneName = zoneReturnLocalizedData[zoneId]
+            if returnLocalizedZoneName ~= nil and returnLocalizedZoneName ~= "" then
+                retZoneLocalizedZoneNamesTable[zoneId] = returnLocalizedZoneName
+            end
+        end
+    end
+    return retZoneLocalizedZoneNamesTable
+end
 
 ------------------------------------------------------------------------
 -- 	Addon/Librray load functions
@@ -413,9 +444,9 @@ local function OnLibraryLoaded(event, name)
         local currentAPIVersion = GetAPIVersion()
         lib.currentAPIVersion = currentAPIVersion
         lib.currentClientLanguage = GetCVar("language.2")
-        local forceZoneIdUpdateDueToAPIChange = (lastCheckedZoneAPIVersion == nil or lastCheckedZoneAPIVersion ~= currentAPIVersion) or false
 
         --Get localized (client language) zone data to SavedVariables (No reloadui!)
+        local forceZoneIdUpdateDueToAPIChange = (lastCheckedZoneAPIVersion == nil or lastCheckedZoneAPIVersion ~= currentAPIVersion) or false
         lib:GetAllZoneDataById(forceZoneIdUpdateDueToAPIChange, false)
         --Do we have already datamined and localized zoneData given for other (non-client) languages?
         checkOtherLanguagesZoneDataAndTransferToSavedVariables()
