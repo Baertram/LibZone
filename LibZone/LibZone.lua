@@ -504,10 +504,13 @@ function lib:buildLSCZoneSearchAutoComplete()
         for zoneId, zoneName in pairs(localizedZoneDataForClientLang) do
             --Check if the zoneIds are blacklisted
             local isZoneBlacklisted = blacklistedZoneIdsForAutoCompletion[zoneId] or false
-            if not isZoneBlacklisted and not self.command:HasSubCommandAlias(zoneName) then
+            if not isZoneBlacklisted then
+                --Replace the spaces in the zone name so LibSlashCommander will find them with the auto complete properly
+                local repStr = "·"
+                local zoneNameNoSpaces = string.gsub(zoneName, " ", repStr)
                 --Add a zone entry as subcommand so the first auto complete will show all zone names as the user types /lzt into chat
                 local zoneSubCommand = self.command:RegisterSubCommand()
-                zoneSubCommand:AddAlias(zoneName)
+                zoneSubCommand:AddAlias(zoneNameNoSpaces)
                 zoneSubCommand:SetDescription(clientLangUpper)
                 zoneSubCommand:SetCallback(function(input)
                     StartChatInput(input)
