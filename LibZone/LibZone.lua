@@ -31,31 +31,35 @@
 local libZone = {}
 --Addon/Library info
 libZone.name        = "LibZone"
-libZone.version     = 0.3
+libZone.version     = 0.4
 --SavedVariables info
 libZone.svDataName  = "LibZone_SV_Data"
 libZone.svLocalizedDataName = "LibZone_Localized_SV_Data"
-libZone.svVersion   = 0.3
-libZone.maxZoneIds  = 3000 -- API100025, Murkmire
+libZone.svVersion   = 0.4 -- Changing this will reset the SavedVariables!
+libZone.maxZoneIds  = 3200 -- API100027, Elsweyr
 
 ------------------------------------------------------------------------
 -- 	Library creation
 ------------------------------------------------------------------------
+assert(not _G[libZone.name], "\'" .. libZone.name .. "\' has already been loaded")
 local lib, oldminor = LibStub:NewLibrary(libZone.name, libZone.version)
 if not lib then return end -- the same or newer version of this lib is already loaded into memory
 
 ------------------------------------------------------------------------
 -- 	Global variables
 ------------------------------------------------------------------------
-LibZone = LibZone or {}
---Assign LibStub created library instance of LibZone (lib) to global variable (LibZone)
-LibZone = lib
-LibZone.libraryInfo = libZone
-LibZone.oldMinor = oldminor
+--Assign LibStub created/or non LibStub global var library instance of LibZone (lib) to global variable (LibZone)
+_G[libZone.name] = lib
+
+lib.libraryInfo = libZone
+lib.oldMinor    = oldminor
 
 ------------------------------------------------------------------------
 -- 	Local variables, global for the library
 ------------------------------------------------------------------------
+local LSC = LibSlashCommander or LibStub("LibSlashCommander")
+if not LSC then d("[" .. libZone.name .. "]Library 'LibSlashCommander' is missing!") return nil end
+lib.LSC = LSC
 lib.searchDirty = true
 lib.zoneData = {}
 lib.localizedZoneData = {}
@@ -68,6 +72,7 @@ lib.supportedLanguages = {
     [3] = "fr",
     [4] = "jp",
     [5] = "ru",
+    [6] = "pl",
 }
 local translations = {
     ["de"] = {
@@ -76,7 +81,9 @@ local translations = {
         ["fr"]  = "Französisch",
         ["jp"]  = "Japanisch",
         ["ru"]  = "Russisch",
+        ["pl"]  = "Polnisch",
         ["slashCommandDescription"] = "Suche übersetzte Zonen Namen",
+        ["slashCommandDescriptionClient"] = "Suche Zonen Namen (Spiel Sprache)",
     },
     ["en"] = {
         ["de"]  = "German",
@@ -84,7 +91,9 @@ local translations = {
         ["fr"]  = "French",
         ["jp"]  = "Japanese",
         ["ru"]  = "Russian",
+        ["pl"]  = "Polish",
         ["slashCommandDescription"] = "Search translations of zone names",
+        ["slashCommandDescriptionClient"] = "Search zone names (game client language)",
     },
     ["fr"] = {
         ["de"]  = "Allemand",
@@ -92,7 +101,9 @@ local translations = {
         ["fr"]  = "Français",
         ["jp"]  = "Japonais",
         ["ru"]  = "Russe",
+        ["pl"]  = "Polonais",
         ["slashCommandDescription"] = "Rechercher des traductions de noms de zones",
+        ["slashCommandDescriptionClient"] = "Rechercher des noms de zones (langue du jeu)",
     },
     ["jp"] = {
         ["de"]  = "ドイツ語",
@@ -100,7 +111,9 @@ local translations = {
         ["fr"]  = "フランス語",
         ["jp"]  = "日本語",
         ["ru"]  = "ロシア",
+        ["pl"]  = "ポーランド語",
         ["slashCommandDescription"] = "ゾーン名の翻訳を検索する",
+        ["slashCommandDescriptionClient"] = "ゾーン名（ゲームの言語）を検索する",
     },
     ["ru"] = {
         ["de"]  = "Нeмeцкий",
@@ -108,7 +121,19 @@ local translations = {
         ["fr"]  = "Фpaнцузcкий",
         ["jp"]  = "Япoнcкий",
         ["ru"]  = "Pуccкий",
+        ["pl"]  = "польский",
         ["slashCommandDescription"] = "Поиск переводов названий зон",
+        ["slashCommandDescriptionClient"] = "Поиск по названию зоны (язык игры)",
+    },
+    ["pl"] = {
+        ["de"] = "Niemiecki",
+        ["en"] = "Angielski",
+        ["fr"] = "Francuski",
+        ["jp"] = "Japoński",
+        ["ru"] = "Rosyjski",
+        ["pl"] = "Polskie",
+        ["slashCommandDescription"] = "Wyszukaj tłumaczenia nazw stref",
+        ["slashCommandDescriptionClient"] = "Wyszukaj nazwy stref (język klienta gry)",
     },
 }
 
@@ -168,10 +193,13 @@ end
 --Load the SavedVariables
 local function librarySavedVariables()
     lib.worldName = GetWorldName()
+    local svVersion         = libZone.svVersion
+    local svDataTableName   = "ZoneData"
+    local worldName         = lib.worldName
     local defaultZoneData = {}
     --ZO_SavedVars:NewAccountWide(savedVariableTable, version, namespace, defaults, profile, displayName)
-    lib.zoneData = ZO_SavedVars:NewAccountWide(libZone.svDataName, libZone.svVersion, "ZoneData", defaultZoneData, lib.worldName)
-    lib.localizedZoneData = ZO_SavedVars:NewAccountWide(libZone.svLocalizedDataName, libZone.svVersion, "ZoneData", defaultZoneData, lib.worldName)
+    lib.zoneData            = ZO_SavedVars:NewAccountWide(libZone.svDataName,           svVersion, svDataTableName, defaultZoneData, worldName)
+    lib.localizedZoneData   = ZO_SavedVars:NewAccountWide(libZone.svLocalizedDataName,  svVersion, svDataTableName, defaultZoneData, worldName)
 end
 
 --Check other langauges than the client language: Is there any zoneData given?
@@ -181,9 +209,9 @@ local function checkOtherLanguagesZoneDataAndTransferToSavedVariables()
         local clientLanguage = lib.currentClientLanguage
         --Check each given language data
         for givenZoneDataLanguage, givenZoneDataForLanguage in pairs(givenZoneDataTable) do
-            --Do not check the current client language data as this will be automatically in the SavedVariables already
+            --Do not check the current client language data as this will be automatically saved in the SavedVariables already.
             --> Each other language needs to be added manually via a SetCVar("language.2", "fr") e.g., or will be taken from
-            --> the given datamined localized zone data
+            --> the given datamined localized zone data in filename LibZone_Data.lua, table givenZoneData
             if givenZoneDataLanguage ~= clientLanguage then
                 --Check if the data is inside the SavedVariables already
                 local zoneDataForLanguage = lib.localizedZoneData[givenZoneDataLanguage]
@@ -336,7 +364,7 @@ function lib:ShowZoneData(zoneId, subZoneId, language)
     language = language or self.currentClientLanguage
     local zoneIdData, subZoneIdData = self:GetZoneData(zoneId, subZoneId, language)
     if zoneIdData ~= nil then
-        d("[LibZone]ShowZoneData for zoneId \"".. tostring(zoneId) .. "\", subZoneId: \"".. tostring(subZoneId) .. "\", language: \"" .. tostring(language) .. "\"")
+        d("[" .. libZone.name .. "]ShowZoneData for zoneId \"".. tostring(zoneId) .. "\", subZoneId: \"".. tostring(subZoneId) .. "\", language: \"" .. tostring(language) .. "\"")
         d(">Zone name: " .. tostring(zoneIdData.name))
         if zoneIdData.zoneIndex ~= nil then d(">Zone index: " .. tostring(zoneIdData.zoneIndex)) end
         if subZoneIdData ~= nil then
@@ -344,7 +372,7 @@ function lib:ShowZoneData(zoneId, subZoneId, language)
             if subZoneIdData.zoneIndex ~= nil then d(">SubZone index: " .. tostring(subZoneIdData.zoneIndex)) end
         end
     else
-        d("[LibZone]ShowZoneData for zoneId \"".. tostring(zoneId) .. "\", subZoneId: \"".. tostring(subZoneId) .. "\"\nNo zone data was found for language \"" .. tostring(language) .. "\"!")
+        d("[" .. libZone.name .. "]ShowZoneData for zoneId \"".. tostring(zoneId) .. "\", subZoneId: \"".. tostring(subZoneId) .. "\"\nNo zone data was found for language \"" .. tostring(language) .. "\"!")
     end
 end
 
@@ -475,83 +503,108 @@ end
 -- 	Library - Chat autocomplete functions (using LibSlashCommander)
 ------------------------------------------------------------------------
 
-function lib:buildLSCZoneSearchAutoComplete()
-    --Get/Create instance of LibSlashCommander
-    local LSC = LibStub("LibSlashCommander")
-    if LSC == nil then return nil end
-    self.command = LSC:Register({"/lzt", "/transz"}, nil, "[LibZone]" .. translations[self.currentClientLanguage]["slashCommandDescription"])
-
-    local MyAutoCompleteProvider = LSC.AutoCompleteProvider:Subclass()
-    function MyAutoCompleteProvider:New(resultList, lookupList)
-        local obj = LSC.AutoCompleteProvider.New(self)
-        obj.resultList = resultList
-        obj.lookupList = lookupList
-        return obj
-    end
-
-    function MyAutoCompleteProvider:GetResultList()
-        return self.resultList
-    end
-
-    function MyAutoCompleteProvider:GetResultFromLabel(label)
-        return self.lookupList[label] or label
-    end
-
+function lib:buildAutoComplete(command, langToUse)
+    if command == nil or not checkIfLanguageIsSupported(langToUse) then return end
     --Add sub commands for the zoneNames
-    local localizedZoneDataForClientLang = self.localizedZoneData[self.currentClientLanguage]
-    if localizedZoneDataForClientLang ~= nil then
-        local clientLangUpper = translations[self.currentClientLanguage][self.currentClientLanguage]
-        for zoneId, zoneName in pairs(localizedZoneDataForClientLang) do
+    local this = self
+    local localizedZoneDataForLang = self.localizedZoneData[langToUse]
+    if localizedZoneDataForLang ~= nil then
+        local MyAutoCompleteProvider = {}
+        MyAutoCompleteProvider = self.LSC.AutoCompleteProvider:Subclass()
+        function MyAutoCompleteProvider:New(resultList, lookupList, lang)
+            local obj = this.LSC.AutoCompleteProvider.New(self)
+            obj.resultList = resultList
+            obj.lookupList = lookupList
+            obj.lang = langToUse
+            return obj
+        end
+
+        function MyAutoCompleteProvider:GetResultList()
+            return self.resultList
+        end
+
+        function MyAutoCompleteProvider:GetResultFromLabel(label)
+            return self.lookupList[label] or label
+        end
+
+        local repStr = "·"
+        local langUpper = translations[langToUse][langToUse]
+        for zoneId, zoneName in pairs(localizedZoneDataForLang) do
             --Check if the zoneIds are blacklisted
             local isZoneBlacklisted = blacklistedZoneIdsForAutoCompletion[zoneId] or false
             if not isZoneBlacklisted then
                 --Replace the spaces in the zone name so LibSlashCommander will find them with the auto complete properly
-                local repStr = "·"
-                local zoneNameNoSpaces = string.gsub(zoneName, " ", repStr)
-                --Add a zone entry as subcommand so the first auto complete will show all zone names as the user types /lzt into chat
-                local zoneSubCommand = self.command:RegisterSubCommand()
-                zoneSubCommand:AddAlias(zoneNameNoSpaces)
-                zoneSubCommand:SetDescription(clientLangUpper)
-                zoneSubCommand:SetCallback(function(input)
-                    StartChatInput(input)
-                end)
-                --Get the translated zone names
-                local otherLanguagesZoneName = {} -- Only a temp table
-                local otherLanguagesNoDuplicateZoneName = {} -- Only a temp table
-                local alreadyAddedCleanTranslatedZoneNames = {} -- The resultsList for the autocomplete provider
-                local alreadyAddedCleanTranslatedZoneNamesLookup = {} -- The lookupList for the autocomplete provider
-                for langIdx, lang in ipairs(self.supportedLanguages) do
-                    local otherLanguageZoneName = lib:GetZoneName(zoneId, lang)
-                    if otherLanguageZoneName ~= nil and otherLanguageZoneName ~= "" then
-                        otherLanguagesZoneName[langIdx] = otherLanguageZoneName
-                    end
-                end
-                if #otherLanguagesZoneName >= 1 then
-                    local langStr = ""
-                    for langIdx, cleanTranslatedZoneName in ipairs(otherLanguagesZoneName) do
-                        local lang = self.supportedLanguages[langIdx]
-                        local upperLangStr = translations[self.currentClientLanguage][lang]
-                        if otherLanguagesNoDuplicateZoneName[cleanTranslatedZoneName] == nil then
-                            langStr = ""
+                --try to use %s instead of just a space. if that doesn't work use [\t-\r ] instead
+                local zoneNameNoSpaces = string.gsub(zoneName, "%s+", repStr)
+                if zoneNameNoSpaces == "" then zoneNameNoSpaces = zoneName end
+                if not command:HasSubCommandAlias(zoneNameNoSpaces) then
+                    --Add a zone entry as subcommand so the first auto complete will show all zone names as the user types /lzt into chat
+                    local zoneSubCommand = command:RegisterSubCommand()
+                    zoneSubCommand:AddAlias(zoneNameNoSpaces)
+                    zoneSubCommand:SetDescription(langUpper)
+                    zoneSubCommand:SetCallback(function(input)
+                        StartChatInput(input)
+                    end)
+                    --Get the translated zone names
+                    local otherLanguagesZoneName = {} -- Only a temp table
+                    local otherLanguagesNoDuplicateZoneName = {} -- Only a temp table
+                    local alreadyAddedCleanTranslatedZoneNames = {} -- The resultsList for the autocomplete provider
+                    local alreadyAddedCleanTranslatedZoneNamesLookup = {} -- The lookupList for the autocomplete provider
+                    for langIdx, lang in ipairs(self.supportedLanguages) do
+                        local otherLanguageZoneName = lib:GetZoneName(zoneId, lang)
+                        if otherLanguageZoneName ~= nil and otherLanguageZoneName ~= "" then
+                            otherLanguagesZoneName[langIdx] = otherLanguageZoneName
                         end
-                        if langStr == "" then
-                            langStr = upperLangStr
-                        else
-                            langStr = langStr .. ", " .. upperLangStr
+                    end
+                    if #otherLanguagesZoneName >= 1 then
+                        local langStr = ""
+                        for langIdx, cleanTranslatedZoneName in ipairs(otherLanguagesZoneName) do
+                            local lang = self.supportedLanguages[langIdx]
+                            local upperLangStr = translations[langToUse][lang]
+                            if otherLanguagesNoDuplicateZoneName[cleanTranslatedZoneName] == nil then
+                                langStr = ""
+                            else
+                                langStr = otherLanguagesNoDuplicateZoneName[cleanTranslatedZoneName]
+                            end
+                            if langStr == "" then
+                                langStr = upperLangStr
+                            else
+                                langStr = langStr .. ", " .. upperLangStr
+                            end
+                            otherLanguagesNoDuplicateZoneName[cleanTranslatedZoneName] = langStr
                         end
-                        otherLanguagesNoDuplicateZoneName[cleanTranslatedZoneName] = langStr
+                        for cleanTranslatedZoneNameLoop, langStrLoop in pairs(otherLanguagesNoDuplicateZoneName) do
+                            local label = string.format("%s|caaaaaa - %s", cleanTranslatedZoneNameLoop, langStrLoop)
+                            alreadyAddedCleanTranslatedZoneNames[zo_strlower(cleanTranslatedZoneNameLoop)] = label
+                            alreadyAddedCleanTranslatedZoneNamesLookup[label] = cleanTranslatedZoneNameLoop
+                        end
                     end
-                    for cleanTranslatedZoneNameLoop, langStrLoop in pairs(otherLanguagesNoDuplicateZoneName) do
-                        local label = string.format("%s|caaaaaa - %s", cleanTranslatedZoneNameLoop, langStrLoop)
-                        alreadyAddedCleanTranslatedZoneNames[zo_strlower(cleanTranslatedZoneNameLoop)] = label
-                        alreadyAddedCleanTranslatedZoneNamesLookup[label] = cleanTranslatedZoneNameLoop
-                    end
+                    local autocomplete = MyAutoCompleteProvider:New(alreadyAddedCleanTranslatedZoneNames, alreadyAddedCleanTranslatedZoneNamesLookup, langToUse)
+                    zoneSubCommand:SetAutoComplete(autocomplete)
                 end
-                local autocomplete = MyAutoCompleteProvider:New(alreadyAddedCleanTranslatedZoneNames, alreadyAddedCleanTranslatedZoneNamesLookup)
-                zoneSubCommand:SetAutoComplete(autocomplete)
             end
         end
     end
+end
+
+function lib:buildLSCZoneSearchAutoComplete()
+    --Get/Create instance of LibSlashCommander
+    if self.LSC == nil then return nil end
+    local libName = "[" .. libZone.name .."]"
+    self.commandLzt     = self.LSC:Register({"/lzt", "/transz"}, nil, libName .. translations[self.currentClientLanguage]["slashCommandDescriptionClient"])
+    self.commandLztDE   = self.LSC:Register({"/lztde", "/transzde"}, nil, libName .. translations["de"]["slashCommandDescription"])
+    self.commandLztEN   = self.LSC:Register({"/lzten", "/transzen"}, nil, libName .. translations["en"]["slashCommandDescription"])
+    self.commandLztFR   = self.LSC:Register({"/lztfr", "/transzfr"}, nil, libName .. translations["fr"]["slashCommandDescription"])
+    self.commandLztJP   = self.LSC:Register({"/lztjp", "/transzjp"}, nil, libName .. translations["jp"]["slashCommandDescription"])
+    self.commandLztRU   = self.LSC:Register({"/lztru", "/transzru"}, nil, libName .. translations["ru"]["slashCommandDescription"])
+    self.commandLztPL   = self.LSC:Register({"/lztpl", "/transzpl"}, nil, libName .. translations["pl"]["slashCommandDescription"])
+    self:buildAutoComplete(self.commandLzt, self.currentClientLanguage)
+    self:buildAutoComplete(self.commandLztDE, "de")
+    self:buildAutoComplete(self.commandLztEN, "en")
+    self:buildAutoComplete(self.commandLztFR, "fr")
+    self:buildAutoComplete(self.commandLztJP, "jp")
+    self:buildAutoComplete(self.commandLztRU, "ru")
+    self:buildAutoComplete(self.commandLztPL, "pl")
 end
 
 ------------------------------------------------------------------------
