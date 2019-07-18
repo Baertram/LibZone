@@ -31,18 +31,22 @@
 local libZone = {}
 --Addon/Library info
 libZone.name        = "LibZone"
-libZone.version     = 0.4
+libZone.version     = 6
 --SavedVariables info
 libZone.svDataName  = "LibZone_SV_Data"
 libZone.svLocalizedDataName = "LibZone_Localized_SV_Data"
-libZone.svVersion   = 0.4 -- Changing this will reset the SavedVariables!
-libZone.maxZoneIds  = 3200 -- API100027, Elsweyr
+libZone.svVersion   = 6 -- Changing this will reset the SavedVariables!
+libZone.maxZoneIds  = 1500 -- API100028, Scalebraker
 
 ------------------------------------------------------------------------
 -- 	Library creation
 ------------------------------------------------------------------------
 assert(not _G[libZone.name], "\'" .. libZone.name .. "\' has already been loaded")
-local lib, oldminor = LibStub:NewLibrary(libZone.name, libZone.version)
+local lib = {}
+local oldminor
+if LibStub then
+    lib, oldminor = LibStub:NewLibrary(libZone.name, libZone.version)
+end
 if not lib then return end -- the same or newer version of this lib is already loaded into memory
 
 ------------------------------------------------------------------------
@@ -57,7 +61,8 @@ lib.oldMinor    = oldminor
 ------------------------------------------------------------------------
 -- 	Local variables, global for the library
 ------------------------------------------------------------------------
-local LSC = LibSlashCommander or LibStub("LibSlashCommander")
+local LSC = LibSlashCommander
+if LSC == nil and LibStub then LSC = LibStub("LibSlashCommander") end
 if not LSC then d("[" .. libZone.name .. "]Library 'LibSlashCommander' is missing!") return nil end
 lib.LSC = LSC
 lib.searchDirty = true
@@ -190,7 +195,10 @@ local function checkIfLanguageIsSupported(lang)
     return false
 end
 
---Load the SavedVariables
+--Load the SavedVariables and connect the tables of the library with the SavedVariable tables.
+--The following table will be stored and read to/from the SavedVariables:
+--LibZone.zoneData:             LibZone_SV_Data             -> zoneIds and parentZoneIds
+--LibZone.localizedZoneData:    LibZone_Localized_SV_Data   -> zoneNames, with different languages
 local function librarySavedVariables()
     lib.worldName = GetWorldName()
     local svVersion         = libZone.svVersion
@@ -198,11 +206,13 @@ local function librarySavedVariables()
     local worldName         = lib.worldName
     local defaultZoneData = {}
     --ZO_SavedVars:NewAccountWide(savedVariableTable, version, namespace, defaults, profile, displayName)
-    lib.zoneData            = ZO_SavedVars:NewAccountWide(libZone.svDataName,           svVersion, svDataTableName, defaultZoneData, worldName)
-    lib.localizedZoneData   = ZO_SavedVars:NewAccountWide(libZone.svLocalizedDataName,  svVersion, svDataTableName, defaultZoneData, worldName)
+    -->Save to "$AllAccounts" so the data is only once in the SavedVariables for all accounts, on each server!
+    lib.zoneData            = ZO_SavedVars:NewAccountWide(libZone.svDataName,           svVersion, svDataTableName, defaultZoneData, worldName, "$AllAccounts")
+    lib.localizedZoneData   = ZO_SavedVars:NewAccountWide(libZone.svLocalizedDataName,  svVersion, svDataTableName, defaultZoneData, worldName, "$AllAccounts")
 end
 
 --Check other langauges than the client language: Is there any zoneData given?
+--The zoneNames table LibZone.localizedZoneDat will be enriched with preloaded data from file LibZone_Data.lua (other languages e.g.).
 local function checkOtherLanguagesZoneDataAndTransferToSavedVariables()
     local givenZoneDataTable = lib.givenZoneData
     if givenZoneDataTable ~= nil then
@@ -229,11 +239,16 @@ end
 ------------------------------------------------------------------------
 -- 	Library functions
 ------------------------------------------------------------------------
---Check and get all zone's data and save them to the SavedVariables. This will only use the current client's language!
+--This function will always run on login to check for new zoneIds and zoneNames in the current client language.
+--But it won't always build totally new, just enrich the given data. If the API version changes it will totally refresh the SavedVariable tables though
+--to recognize changed zoneIds etc.
+--Check and get all zone's IDs (zoneId and parentZoneId) and save them to the library's table zoneData.
+--Check and get all zone's names for each ID and save them to the library's table localizedZoneData , using the actual client language as key.
 --Parameters:
 -->reBuildNew: Boolean [true=Rebuild the zoneData for all zones, even if they already exist / false=Skip already existing zoneIds]
 -->doReloadUI: Boolean [true=If at least one zoneId was added/updated, do a ReloadUI() at the end to update the SavaedVariables now / false=No autoamtic ReloadUI()]
 function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
+--d("[LibZone]GetAllZoneDataById, reBuildNew: " ..tostring(reBuildNew))
     reBuildNew = reBuildNew or false
     doReloadUI = doReloadUI or false
     --Maximum of ZoneIds to check
@@ -291,6 +306,7 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
     if addedAtLeastOne then
         --Update the API version as the zone ID check was done
         local currentAPIVersion = self.currentAPIVersion
+        --Add the currently checked client language for the game's API version to the "last check done at API" table
         self.zoneData.lastZoneCheckAPIVersion = currentAPIVersion
         --Reload the UI now to update teh SavedVariables?
         if doReloadUI then ReloadUI() end
@@ -620,17 +636,19 @@ local function OnLibraryLoaded(event, name)
         --Load SavedVariables
         librarySavedVariables()
 
+        --Get the client's language
+        lib.currentClientLanguage = GetCVar("language.2")
+
         --EVENT_MANAGER:RegisterForEvent(lib.name, EVENT_ZONE_CHANGED, OnZoneChanged)
         --Did the API version change since last zoneID check? Then rebuild the zoneIDs now!
         local lastCheckedZoneAPIVersion = lib.zoneData.lastZoneCheckAPIVersion
         local currentAPIVersion = GetAPIVersion()
         lib.currentAPIVersion = currentAPIVersion
-        lib.currentClientLanguage = GetCVar("language.2")
 
         --Get localized (client language) zone data to SavedVariables (No reloadui!)
         local forceZoneIdUpdateDueToAPIChange = (lastCheckedZoneAPIVersion == nil or lastCheckedZoneAPIVersion ~= currentAPIVersion) or false
         lib:GetAllZoneDataById(forceZoneIdUpdateDueToAPIChange, false)
-        --Do we have already datamined and localized zoneData given for other (non-client) languages?
+        --Do we have already datamined and localized zoneData given for other (non-client) languages? -> See file LibZone_Data.lua
         checkOtherLanguagesZoneDataAndTransferToSavedVariables()
         --Build the libSlashCommander autocomplete stuff
         lib:buildLSCZoneSearchAutoComplete()
