@@ -31,11 +31,11 @@
 local libZone = {}
 --Addon/Library info
 libZone.name        = "LibZone"
-libZone.version     = 6.1
+libZone.version     = 6.0
 --SavedVariables info
 libZone.svDataName  = "LibZone_SV_Data"
 libZone.svLocalizedDataName = "LibZone_Localized_SV_Data"
-libZone.svVersion   = 6.1 -- Changing this will reset the SavedVariables!
+libZone.svVersion   = 6.0 -- Changing this will reset the SavedVariables!
 libZone.svDataTableName = "ZoneData"
 --Maximum zoneIds to scan (as long as there is no constant or function for it we need to "hardcode" a maximum here
 libZone.maxZoneIds  = 2500 -- API100028, Scalebraker
@@ -346,6 +346,17 @@ d("[LibZone]GetAllZoneDataById, reBuildNew: " ..tostring(reBuildNew) .. ", doRel
         --and add a timestamp
         if doReloadUI then ReloadUI() end
     end
+end
+
+--Return the zoneData for all zones and all languages
+-->Returns table:
+--->returnTable = {
+--->    [language] = {
+----->    [zoneId] = "zoneName"
+--->    },
+--->}
+function lib:GetAllZoneData()
+    return lib.preloadedZoneNames
 end
 
 --Return the zoneData of a zone, determined by help of the subZone ID.
