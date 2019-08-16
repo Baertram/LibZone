@@ -266,7 +266,7 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
     --Client language
     local lang = self.currentClientLanguage
     if lang == nil then return false end
-d("[LibZone]GetAllZoneDataById, reBuildNew: " ..tostring(reBuildNew) .. ", doReloadUI: " ..tostring(doReloadUI) .. ", lang: " .. tostring(lang))
+--d("[LibZone]GetAllZoneDataById, reBuildNew: " ..tostring(reBuildNew) .. ", doReloadUI: " ..tostring(doReloadUI) .. ", lang: " .. tostring(lang))
     --Maximum of ZoneIds to check
     local maxZoneId = libZone.maxZoneIds
     --Local SavedVariable data
