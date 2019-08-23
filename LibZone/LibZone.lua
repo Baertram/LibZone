@@ -31,7 +31,7 @@
 local libZone = {}
 --Addon/Library info
 libZone.name        = "LibZone"
-libZone.version     = 6.0
+libZone.version     = 6.1
 --SavedVariables info
 libZone.svDataName  = "LibZone_SV_Data"
 libZone.svLocalizedDataName = "LibZone_Localized_SV_Data"
@@ -64,9 +64,11 @@ lib.oldMinor    = oldminor
 -- 	Local variables, global for the library
 ------------------------------------------------------------------------
 local LSC = LibSlashCommander
-if LSC == nil and LibStub then LSC = LibStub("LibSlashCommander") end
-if not LSC then d("[" .. libZone.name .. "]Library 'LibSlashCommander' is missing!") return nil end
-lib.LSC = LSC
+if LSC == nil and LibStub then LSC = LibStub("LibSlashCommander", true) end
+--if not LSC then d("[" .. libZone.name .. "]Library 'LibSlashCommander' is missing!") return nil end
+if LSC then
+    lib.LSC = LSC
+end
 lib.searchDirty = true
 lib.zoneData = {}
 lib.localizedZoneData = {}
@@ -91,6 +93,7 @@ local translations = {
         ["pl"]  = "Polnisch",
         ["slashCommandDescription"] = "Suche übersetzte Zonen Namen",
         ["slashCommandDescriptionClient"] = "Suche Zonen Namen (Spiel Sprache)",
+        ["libSlashCommanderMissing"] = "Bitte Bibliothek 'LibSlashCommander' installieren!"
     },
     ["en"] = {
         ["de"]  = "German",
@@ -101,6 +104,7 @@ local translations = {
         ["pl"]  = "Polish",
         ["slashCommandDescription"] = "Search translations of zone names",
         ["slashCommandDescriptionClient"] = "Search zone names (game client language)",
+        ["libSlashCommanderMissing"] = "Please install library 'LibSlashCommander'!"
     },
     ["fr"] = {
         ["de"]  = "Allemand",
@@ -111,6 +115,7 @@ local translations = {
         ["pl"]  = "Polonais",
         ["slashCommandDescription"] = "Rechercher des traductions de noms de zones",
         ["slashCommandDescriptionClient"] = "Rechercher des noms de zones (langue du jeu)",
+        ["libSlashCommanderMissing"] = "Svp installer la bibliothèque 'LibSlashCommander'!"
     },
     ["jp"] = {
         ["de"]  = "ドイツ語",
@@ -121,6 +126,7 @@ local translations = {
         ["pl"]  = "ポーランド語",
         ["slashCommandDescription"] = "ゾーン名の翻訳を検索する",
         ["slashCommandDescriptionClient"] = "ゾーン名（ゲームの言語）を検索する",
+        ["libSlashCommanderMissing"] = "ライブラリ'LibSlashCommander'をインストールしてください!"
     },
     ["ru"] = {
         ["de"]  = "Нeмeцкий",
@@ -131,6 +137,7 @@ local translations = {
         ["pl"]  = "польский",
         ["slashCommandDescription"] = "Поиск переводов названий зон",
         ["slashCommandDescriptionClient"] = "Поиск по названию зоны (язык игры)",
+        ["libSlashCommanderMissing"] = "Пожалуйста, установите библиотеку 'LibSlashCommander'!"
     },
     ["pl"] = {
         ["de"] = "Niemiecki",
@@ -141,6 +148,7 @@ local translations = {
         ["pl"] = "Polskie",
         ["slashCommandDescription"] = "Wyszukaj tłumaczenia nazw stref",
         ["slashCommandDescriptionClient"] = "Wyszukaj nazwy stref (język klienta gry)",
+        ["libSlashCommanderMissing"] = "Zainstaluj bibliotekę „LibSlashCommander”!"
     },
 }
 
@@ -557,6 +565,7 @@ end
 ------------------------------------------------------------------------
 
 function lib:buildAutoComplete(command, langToUse)
+    if self.LSC == nil then return nil end
     if command == nil or not checkIfLanguageIsSupported(langToUse) then return end
     --Add sub commands for the zoneNames
     local this = self
@@ -642,7 +651,10 @@ end
 
 function lib:buildLSCZoneSearchAutoComplete()
     --Get/Create instance of LibSlashCommander
-    if self.LSC == nil then return nil end
+    if self.LSC == nil then
+        SLASH_COMMANDS["/lzt"] = function() d("[" .. libZone.name .. "] " .. translations[self.currentClientLanguage]["libSlashCommanderMissing"]) end
+        return nil
+    end
     local libName = "[" .. libZone.name .."]"
     self.commandLzt     = self.LSC:Register({"/lzt", "/transz"}, nil, libName .. translations[self.currentClientLanguage]["slashCommandDescriptionClient"])
     self.commandLztDE   = self.LSC:Register({"/lztde", "/transzde"}, nil, libName .. translations["de"]["slashCommandDescription"])
@@ -689,7 +701,7 @@ local function OnLibraryLoaded(event, name)
         lib:GetAllZoneDataById(forceZoneIdUpdateDueToAPIChange, false)
         --Do we have already datamined and localized zoneData given for other (non-client) languages? -> See file LibZone_Data.lua
         checkOtherLanguagesZoneDataAndTransferFromSavedVariables()
-        --Build the libSlashCommander autocomplete stuff
+        --Build the libSlashCommander autocomplete stuff, if LibSlashCommander is present
         lib:buildLSCZoneSearchAutoComplete()
     end
 end
