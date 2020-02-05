@@ -1,30 +1,73 @@
+--[========================================================================[
+    This is free and unencumbered software released into the public domain.
+
+    Anyone is free to copy, modify, publish, use, compile, sell, or
+    distribute this software, either in source code form or as a compiled
+    binary, for any purpose, commercial or non-commercial, and by any
+    means.
+
+    In jurisdictions that recognize copyright laws, the author or authors
+    of this software dedicate any and all copyright interest in the
+    software to the public domain. We make this dedication for the benefit
+    of the public at large and to the detriment of our heirs and
+    successors. We intend this dedication to be an overt act of
+    relinquishment in perpetuity of all present and future rights to this
+    software under copyright law.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+    IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+    OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+    ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+    OTHER DEALINGS IN THE SOFTWARE.
+
+    For more information, please refer to <http://unlicense.org/>
+--]========================================================================]
+
 LibZone = LibZone or {}
 
 --This table contains datamined localized zoneData in different languages
 --To get new entries of the zones on different languages do the following:
---1. Login to the PTS (or live server you wantr to get the data from)
+--1. Login to the PTS (or live server you want to get the data from)
 --2. Enable LibZone
 --   Each time you reloadui the data in this table is checked and compared to your current client language.
---	 Missing entries will be added to the SavedVariables table "ZoneDataLocalized"
---  with this format:
---  ZoneDataLocalized = {
---		[languageScanned] = {
---   		[zoneId] = "zoneNameInTheLanguage",
---			...
---		},
---		[otherLanguageScanned] = {
---   		[zoneId] = "zoneNameInTheLanguage",
---			...
---		},
---		...
+--	 Missing entries will be added to the SavedVariables file LibZone.lua, table "LibZone_Localized_SV_Data"
+-- [String, result of GetWorldName()] =
+-- {
+-- 		["$AllAccounts"] =
+--		{
+--			["$AccountWide"] =
+--		{
+--  		["ZoneData"] =
+--			{
+--				[String, languageScanned2Chars] = {
+--   				[zoneId] = "String, zoneNameInTheLanguage",
+--					...
+--				},
+--				[String, otherLanguageScanned2Chars] = {
+--   				[zoneId] = "String, zoneNameInTheLanguage",
+--					...
+--				},
+--				...
+--				APIVersionAtLastUpdate = String, result of GetAPIVersion(),
+--				lastUpdate = timestamp, date and time as results were scanned,
+--			}
+--		}
 --	}
 --3. Change the language ingame to the desired language you want to get the zoneNames for, using
 --   /script SetCVar("language.2", "en")
---4. Copy the tables of the language you want from the SavedVariables to the file here, into the table "preloadedZoneNames",
---	 to update the localized zoneNames of the library.
+--4. Copy the tables of the language you want from the SavedVariables to the file here, into the file LibZone_Data.lua, table "preloadedZoneNames",
+--	 below the appropriate language key, to update the localized zoneNames of the library.
 --5. Update the "Last updated" stamp below:
 --
---Last updated: API100029 Dragonhold
+--Last updated: API100030 Harrowstorm
+
+
+
+--The preloaded zone names in different languages
+--Important: If you add new languages be sure to update the table lib.supportedLanguages in file LibZone_Constants.lua
+--Update this table after the API version changes, like described above!
 local preloadedZoneNames = {
 	--------------------------------------------------------------------------------
 	-- English
@@ -802,11 +845,18 @@ local preloadedZoneNames = {
 		[1149] = "Doomstone Keep",
 		[1150] = "Doomstone Caverns",
 		[1151] = "Dragonhold Ruins",
+		[1152] = "Icereach",
 		[1153] = "U25-DUN2",
 		[1154] = "Moon-Sugar Meadow",
 		[1155] = "Wraithhome",
+		[1188] = "Palace Throne Room",
+		[1189] = "Palace of the Kings",
+		[1190] = "Riften Ratway",
+		[1191] = "Blackreach",
 		[1192] = "Lucky Cat Landing",
 		[1193] = "Potentate's Retreat",
+		[1199] = "Forgemaster Falls",
+		[1200] = "Thieves' Oasis",
 	},
 --------------------------------------------------------------------------------
 -- French
@@ -1582,11 +1632,18 @@ local preloadedZoneNames = {
 		[1149] = "Le fort de la Pierre du Destin",
 		[1150] = "Les cavernes de la Pierre du Destin",
 		[1151] = "Les ruines de la Bastide du dragon",
+		[1152] = "Crève-Nève",
 		[1153] = "U25-DUN2",
 		[1154] = "Prairie à sucrelune",
 		[1155] = "Maisaulée",
+		[1188] = "La Salle du trône du palais",
+		[1189] = "Le palais des rois",
+		[1190] = "La Ratière de Faillaise",
+		[1191] = "Griffenoire",
 		[1192] = "Le Débarcadère du Chat Chanceux",
 		[1193] = "La Retraite du Potentat",
+		[1199] = "La Chute du maître de forge",
+		[1200] = "L’Oasis des voleurs",
 	},
 	--------------------------------------------------------------------------------
 	-- German
@@ -2363,11 +2420,18 @@ local preloadedZoneNames = {
 		[1149] = "Die Unheilssteinfeste",
 		[1150] = "Die Unheilssteinkavernen",
 		[1151] = "Ruinen von Drachenholm",
+		[1152] = "Eiskap",
 		[1153] = "U25-DUN2",
 		[1154] = "Die Mondzuckeraue",
 		[1155] = "Schemenheim",
+		[1188] = "Thronsaal des Palasts",
+		[1189] = "Der Königspalast",
+		[1190] = "Der Rattenweg von Riften",
+		[1191] = "Schwarzweite",
 		[1192] = "Die Vier-Pfoten-Landung",
 		[1193] = "Rückzugsort des Potentaten",
+		[1199] = "Die Schmiedemeisterfälle",
+		[1200] = "Die Oase der Diebe",
 	},
 	--------------------------------------------------------------------------------
 	-- Russian

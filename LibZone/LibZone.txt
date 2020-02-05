@@ -1,8 +1,8 @@
 ﻿## Title: LibZone
 ## Author: Baertram
-## AddOnVersion: 064
+## AddOnVersion: 065
 ## APIVersion: 100029 100030
-## Version: 6.4
+## Version: 6.5
 ## SavedVariables: LibZone_SV_Data LibZone_Localized_SV_Data
 ## Description: Collects and provides zone information from the available zones/subzones ingame
 ## OptionalDependsOn: LibSlashCommander
@@ -10,5 +10,14 @@
 
 ## This Add-On is not created by, affiliated with or sponsored by ZeniMax Media Inc. or its affiliates. The Elder Scrolls® and related logos are registered trademarks or trademarks of ZeniMax Media Inc. in the United States and/or other countries. All rights reserved.
 
+## Library constants, languages and version
+LibZone_Constants.lua
+
+##Optional: If library LibSlashCommander is loaded: Chat auto completion for zone names
+LibZone_AutoCompletion.lua
+
+##LibZone API functions
 LibZone.lua
+
+##LibZone preloaded zonedata and names
 LibZone_Data.lua
