@@ -2,7 +2,7 @@
 ## Author: Baertram
 ## AddOnVersion: 066
 ## APIVersion: 100030 100031
-## Version: 6.6
+## Version: 6.7
 ## SavedVariables: LibZone_SV_Data LibZone_Localized_SV_Data
 ## Description: Collects and provides zone information from the available zones/subzones ingame
 ## OptionalDependsOn: LibSlashCommander
