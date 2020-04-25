@@ -428,6 +428,35 @@ function lib:GetMaxZoneId()
     return self.maxZoneIds, self.maxZoneIndices
 end
 
+--Get the zone and subZone string from the given map's tile texture (or the current's map's tile texture name)
+function lib.getCurrentZoneInfo(mapTileTextureName, patternToUse)
+--[[
+    Possible texture names are e.g.
+    /art/maps/southernelsweyr/els_dragonguard_island05_base_8.dds
+    /art/maps/murkmire/tsofeercavern01_1.dds
+    /art/maps/housing/blackreachcrypts.base_0.dds
+    /art/maps/housing/blackreachcrypts.base_1.dds
+    Art/maps/skyrim/blackreach_base_0.dds
+    Textures/maps/summerset/alinor_base.dds
+]]
+    mapTileTextureName = mapTileTextureName or GetMapTileTexture()
+    if not mapTileTextureName or mapTileTextureName == "" then return end
+    local mapTileTextureNameLower = mapTileTextureName:lower()
+    mapTileTextureNameLower = mapTileTextureNameLower:gsub("ui_map_", "")
+    --mapTileTextureNameLower = mapTileTextureNameLower:gsub(".base", "_base")
+    --mapTileTextureNameLower = mapTileTextureNameLower:gsub("[_+%d]*%.dds$", "") -> Will remove the 01_1 at the end of tsofeercavern01_1
+    mapTileTextureNameLower = mapTileTextureNameLower:gsub("%.dds$", "")
+    mapTileTextureNameLower = mapTileTextureNameLower:gsub("_%d*$", "")
+    local regexData = {}
+    if not patternToUse or patternToUse == "" then patternToUse = "([%/]?.*%/maps%/)(%w+)%/(.*)" end
+    regexData = {mapTileTextureNameLower:find(patternToUse)} --maps/([%w%-]+/[%w%-]+[%._][%w%-]+(_%d)?)
+    local zoneName, subzoneName = regexData[4], regexData[5]
+    local zoneId = GetZoneId(GetCurrentMapZoneIndex())
+    local parentZoneId = GetParentZoneId(zoneId)
+    d("========================================\n["..libZone.name.."]getZoneInfo\nzone: " ..tostring(zoneName) .. ", subZone: " .. tostring(subzoneName) .. "\nmapTileTexture: " .. tostring(mapTileTextureNameLower).."\nzoneId: " ..tostring(zoneId).. ", parentZoneId: " ..tostring(parentZoneId))
+    return zoneName, subzoneName, mapTileTextureNameLower, zoneId, parentZoneId
+end
+
 ------------------------------------------------------------------------
 -- 	Addon/Librray load functions
 ------------------------------------------------------------------------
