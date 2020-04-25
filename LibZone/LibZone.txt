@@ -1,11 +1,11 @@
 ﻿## Title: LibZone
-## Author: Baertram
-## AddOnVersion: 067
-## APIVersion: 100030 100031
-## Version: 6.7
-## SavedVariables: LibZone_SV_Data LibZone_Localized_SV_Data
 ## Description: Collects and provides zone information from the available zones/subzones ingame
-## OptionalDependsOn: LibSlashCommander
+## Author: Baertram
+## AddOnVersion: 068
+## APIVersion: 100030 100031
+## Version: 6.8
+## SavedVariables: LibZone_SV_Data LibZone_Localized_SV_Data
+## OptionalDependsOn: LibSlashCommander>=36
 ## IsLibrary: true
 
 ## This Add-On is not created by, affiliated with or sponsored by ZeniMax Media Inc. or its affiliates. The Elder Scrolls® and related logos are registered trademarks or trademarks of ZeniMax Media Inc. in the United States and/or other countries. All rights reserved.

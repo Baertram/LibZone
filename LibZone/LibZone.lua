@@ -100,6 +100,8 @@ local function checkOtherLanguagesZoneDataAndTransferFromSavedVariables()
                 --So get the data from the SavedVariables once (if it exists)
                 if localizedZoneDataSV and localizedZoneDataSV[clientLanguage] then
                     preloadedZoneNamesForLanguage = localizedZoneDataSV[clientLanguage]
+                    --Kyoma on 2020-04-13: Assigned table preloadedZoneNamesForLanguage is not updating referenced table preloadedZoneNamesTable[clientLanguage], so directly access it
+                    --preloadedZoneNamesTable[clientLanguage] = localizedZoneDataSV[clientLanguage]
                 end
             end
         end
