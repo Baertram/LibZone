@@ -26,6 +26,7 @@
 --]========================================================================]
 
 LibZone = LibZone or {}
+local lib = LibZone
 
 --This table contains datamined localized zoneData in different languages
 --To get new entries of the zones on different languages do the following:
@@ -69,6 +70,44 @@ LibZone = LibZone or {}
 --Non updated languages:	jp, pl
 ------------------------------------------------------------------------------------------------------------------------
 
+--Entries in this table "zoneIdsOfDifferentAPIVersion" will be removed from all zoneData tables below if the current
+--games's APIversion is below the key of the sub-table below.
+--e.g. the table zoneIdsOfDifferentAPIVersion below contains a subtable 100031. So all entries in there will first be
+--available within the LibZone data tables if the game's function GetAPIVersion() returns 100031 or higher!
+local zoneIdsOfDifferentAPIVersion = {
+	--List of zoneIds added with API100031 Greymoor. All prior APIVersions will remove it
+	[100031] = {
+		1160,
+		1161,
+		1165,
+		1166,
+		1167,
+		1168,
+		1169,
+		1170,
+		1171,
+		1172,
+		1173,
+		1174,
+		1175,
+		1176,
+		1177,
+		1178,
+		1179,
+		1181,
+		1182,
+		1183,
+		1184,
+		1185,
+		1186,
+		1187,
+		1195,
+		1196,
+		1218,
+		1219,
+		1220,
+	},
+}
 
 --The preloaded zone names in different languages
 --Important: If you add new languages be sure to update the table lib.supportedLanguages in file LibZone_Constants.lua
@@ -1605,5 +1644,31 @@ local preloadedZoneNames = {
 	},
 --------------------------------------------------------------------------------
 }
+
+
+--Remove non.live zoneIds from the LibZone data tables
+local function removeNonLiveAPIVersionEntriesFromLibZoneData()
+	if zoneIdsOfDifferentAPIVersion and preloadedZoneNames then
+		local checkIfLanguageIsSupported = lib.checkIfLanguageIsSupported
+		local currentAPIVersion = lib.currentAPIVersion or GetAPIVersion()
+		for apiVersionToCheck, zoneIdsToRemove in pairs(zoneIdsOfDifferentAPIVersion) do
+			if apiVersionToCheck ~= nil and type(apiVersionToCheck) == "number" and apiVersionToCheck >= 100000 then
+				if apiVersionToCheck > currentAPIVersion then
+					for languageToCheck, zoneIds in pairs(preloadedZoneNames) do
+						if checkIfLanguageIsSupported(languageToCheck) == true then
+							for _, zoneIdToRemove in ipairs(zoneIdsToRemove) do
+								if zoneIds[zoneIdToRemove] ~= nil then
+									preloadedZoneNames[languageToCheck][zoneIdToRemove] = nil
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+removeNonLiveAPIVersionEntriesFromLibZoneData()
+
 --Provide this translated data to the global library variable
-LibZone.preloadedZoneNames = preloadedZoneNames
+lib.preloadedZoneNames = preloadedZoneNames

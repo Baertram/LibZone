@@ -164,6 +164,9 @@ if not lib then return end -- the same or newer version of this lib is already l
 lib.libraryInfo = libZone
 lib.oldMinor    = oldminor
 
+--The APIversion
+lib.currentAPIVersion = GetAPIVersion()
+
 --The server name variable
 lib.worldName = GetWorldName()
 
@@ -243,7 +246,6 @@ if LSC == nil and LibStub then LSC = LibStub("LibSlashCommander", true) end
 if LSC then
     lib.LSC = LSC
 end
-
 
 ------------------------------------------------------------------------
 -- 	Global variable for the lib: LibZone

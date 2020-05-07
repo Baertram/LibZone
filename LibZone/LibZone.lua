@@ -111,6 +111,17 @@ end
 ------------------------------------------------------------------------
 -- 	Library functions
 ------------------------------------------------------------------------
+--Get the current map's zoneIndex and via the index get the zoneId, the parent zoneId, and return them
+--+ the current zone's index and parent zone index
+--> Returns: number currentZoneId, number currentZoneParentId, number currentZoneIndex, number currentZoneParentIndex
+function lib:GetCurrentZoneIds()
+    local currentZoneIndex = GetCurrentMapZoneIndex()
+    local currentZoneId = GetZoneId(currentZoneIndex)
+    local currentZoneParentId = GetParentZoneId(currentZoneId)
+    local currentZoneParentIndex = GetZoneIndex(currentZoneParentId)
+    return currentZoneId, currentZoneParentId, currentZoneIndex, currentZoneParentIndex
+end
+
 --Check and get all zone's IDs (zoneId and parentZoneId) and save them to the library's table zoneData.
 --Check which zoneNames are already preloaded into the libraries table LibZone.preloadedZoneNames. For the missing ones (compared to entries in just updated table zoneData.zoneId):
 ---Check and get the zone's name for the zone ID.
@@ -428,8 +439,11 @@ function lib:GetMaxZoneId()
     return self.maxZoneIds, self.maxZoneIndices
 end
 
+
 --Get the zone and subZone string from the given map's tile texture (or the current's map's tile texture name)
-function lib.getCurrentZoneInfo(mapTileTextureName, patternToUse)
+--> Returns: string zoneName, string subZoneName, string mapTileTextureNameLowerCase, string mapTileTextureNameUnchangedComplete
+function lib:GetZoneNameByMapTexture(mapTileTextureName, patternToUse, chatOutput)
+    chatOutput = chatOutput or false
 --[[
     Possible texture names are e.g.
     /art/maps/southernelsweyr/els_dragonguard_island05_base_8.dds
@@ -451,10 +465,10 @@ function lib.getCurrentZoneInfo(mapTileTextureName, patternToUse)
     if not patternToUse or patternToUse == "" then patternToUse = "([%/]?.*%/maps%/)(%w+)%/(.*)" end
     regexData = {mapTileTextureNameLower:find(patternToUse)} --maps/([%w%-]+/[%w%-]+[%._][%w%-]+(_%d)?)
     local zoneName, subzoneName = regexData[4], regexData[5]
-    local zoneId = GetZoneId(GetCurrentMapZoneIndex())
-    local parentZoneId = GetParentZoneId(zoneId)
-    d("========================================\n["..libZone.name.."]getZoneInfo\nzone: " ..tostring(zoneName) .. ", subZone: " .. tostring(subzoneName) .. "\nmapTileTexture: " .. tostring(mapTileTextureNameLower).."\nzoneId: " ..tostring(zoneId).. ", parentZoneId: " ..tostring(parentZoneId))
-    return zoneName, subzoneName, mapTileTextureNameLower, zoneId, parentZoneId
+    if chatOutput == true then
+        d("["..libZone.name.."]GetZoneNameByMapTexture\nzone: " ..tostring(zoneName) .. ", subZone: " .. tostring(subzoneName) .. "\nmapTileTexture: " .. tostring(mapTileTextureNameLower))
+    end
+    return zoneName, subzoneName, mapTileTextureNameLower, mapTileTextureName
 end
 
 ------------------------------------------------------------------------
@@ -475,8 +489,7 @@ local function OnLibraryLoaded(event, name)
 
         --EVENT_MANAGER:RegisterForEvent(lib.name, EVENT_ZONE_CHANGED, OnZoneChanged)
         --Did the API version change since last zoneID check? Then rebuild the zoneIDs now!
-        local currentAPIVersion = GetAPIVersion()
-        lib.currentAPIVersion = currentAPIVersion
+        local currentAPIVersion = lib.currentAPIVersion
         lib.currentClientLanguage = lib.currentClientLanguage or GetCVar("language.2")
         local lastCheckedZoneAPIVersion
         local lastCheckedZoneAPIVersionOfLanguages = lib.zoneData.lastZoneCheckAPIVersion
