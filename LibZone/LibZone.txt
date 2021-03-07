@@ -1,9 +1,9 @@
 ﻿## Title: LibZone
 ## Description: Collects and provides zone information from the available zones/subzones ingame
 ## Author: Baertram
-## AddOnVersion: 070
-## APIVersion: 100032 100033
-## Version: 7.0
+## AddOnVersion: 071
+## APIVersion: 100033 100034
+## Version: 7.1
 ## SavedVariables: LibZone_SV_Data LibZone_Localized_SV_Data
 ## OptionalDependsOn: LibSlashCommander>=36
 ## IsLibrary: true
