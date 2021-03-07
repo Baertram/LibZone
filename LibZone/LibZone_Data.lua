@@ -1645,7 +1645,6 @@ end
 
 --Remove non.live zoneIds from the LibZone data tables
 local function removeNonLiveAPIVersionEntriesFromLibZoneData()
-d("removeNonLiveAPIVersionEntriesFromLibZoneData")
 	if zoneIdsOfDifferentAPIVersion and preloadedZoneNames then
 		local checkIfLanguageIsSupported = lib.checkIfLanguageIsSupported
 		local currentAPIVersion = lib.currentAPIVersion or GetAPIVersion()
