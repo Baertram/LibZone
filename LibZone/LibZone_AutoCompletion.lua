@@ -136,6 +136,8 @@ end
 
 --If LibSlashCommander is present and activated: Build the auto completion entries for each supported language (/lzt<language>) + 1 major slash command (/lzt)
 function lib:buildLSCZoneSearchAutoComplete()
+d("lib:buildLSCZoneSearchAutoComplete")
+
     --Get/Create instance of LibSlashCommander
     if self.LSC == nil then
         SLASH_COMMANDS["/lzt"] = function() d("[\'" .. libZone.name .. "\'] " .. translations[self.currentClientLanguage]["libSlashCommanderMissing"]) end

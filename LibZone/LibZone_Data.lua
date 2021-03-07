@@ -1636,8 +1636,8 @@ for lang, zoneData in pairs (preloadedZoneNames) do
 				zoneIdOfOtherAPI = true
 			end
 			if zoneIdOfOtherAPI == true then
-				df("[".. libName .. "]Added zoneId %s (\'%s\') to zones of other API.", tostring(zoneId), tostring(zoneNamePreloaded))
-				zoneIdsOfDifferentAPIVersion[nextApi][zoneId] = true
+				--df("[".. libName .. "]Added zoneId %s (\'%s\') to zones of API %s.", tostring(zoneId), tostring(zoneNamePreloaded), tostring(nextApi))
+				table.insert(zoneIdsOfDifferentAPIVersion[nextApi], zoneId)
 			end
 		end
 	end
@@ -1645,6 +1645,7 @@ end
 
 --Remove non.live zoneIds from the LibZone data tables
 local function removeNonLiveAPIVersionEntriesFromLibZoneData()
+d("removeNonLiveAPIVersionEntriesFromLibZoneData")
 	if zoneIdsOfDifferentAPIVersion and preloadedZoneNames then
 		local checkIfLanguageIsSupported = lib.checkIfLanguageIsSupported
 		local currentAPIVersion = lib.currentAPIVersion or GetAPIVersion()
