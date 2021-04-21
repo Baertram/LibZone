@@ -404,7 +404,8 @@ function lib:GetZoneNameByLocalizedSearchString(searchStr, searchLanguage, retur
     assert (langIsSupported == true, "[\'" .. libZone.name .. "\':GetZoneNameByLocalizedSearchString]Error: Return language \"" .. tostring(returnLanguage) .. "\" is not supported!")
     langIsSupported = false
     searchLanguage = searchLanguage or self.currentClientLanguage
-    assert (searchLanguage ~= returnLanguage, "[\'" .. libZone.name .. "\':GetZoneNameByLocalizedSearchString]Error: Search language and returning language must be different!")
+    --Disabled 2021-04-15, upon request of "SimonIllyan" here: https://www.esoui.com/downloads/info2171-LibZone.html#comments
+    --assert (searchLanguage ~= returnLanguage, "[\'" .. libZone.name .. "\':GetZoneNameByLocalizedSearchString]Error: Search language and returning language must be different!")
     langIsSupported = checkIfLanguageIsSupported(searchLanguage) or false
     assert (langIsSupported == true, "[\'" .. libZone.name .. "\':GetZoneNameByLocalizedSearchString]Error: Search language \"" .. tostring(searchLanguage) .. "\" is not supported!")
     local retZoneIdsTable = {}

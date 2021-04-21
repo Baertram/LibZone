@@ -31,7 +31,7 @@
 local libZone = {}
 --Addon/Library info
 libZone.name                    = "LibZone"
-libZone.version                 = 7.2
+libZone.version                 = 7.4
 libZone.author                  = "Baertram"
 libZone.url                     = "https://www.esoui.com/downloads/info2171-LibZone.html"
 
@@ -241,7 +241,6 @@ lib.checkIfLanguageIsSupported = checkIfLanguageIsSupported
 ------------------------------------------------------------------------
 --LibSlashCommaner for the auto completion and zone translation search
 local LSC = LibSlashCommander
-if LSC == nil and LibStub then LSC = LibStub("LibSlashCommander", true) end
 --if not LSC then d("[" .. libZone.name .. "]Library 'LibSlashCommander' is missing!") return nil end
 if LSC then
     lib.LSC = LSC
