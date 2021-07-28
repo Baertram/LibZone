@@ -29,6 +29,8 @@ LibZone = LibZone or {}
 
 local lib = LibZone
 local libZone = lib.libraryInfo
+local apiVersion = GetAPIVersion()
+local clientLang = lib.currentClientLanguage
 
 ------------------------------------------------------------------------
 -- 	Helper functions
@@ -113,13 +115,15 @@ end
 ------------------------------------------------------------------------
 --Get the current map's zoneIndex and via the index get the zoneId, the parent zoneId, and return them
 --+ the current zone's index and parent zone index
---> Returns: number currentZoneId, number currentZoneParentId, number currentZoneIndex, number currentZoneParentIndex
+--> Returns: number currentZoneId, number currentZoneParentId, number currentZoneIndex, number currentZoneParentIndex, number mapId, number mapIndex
 function lib:GetCurrentZoneIds()
     local currentZoneIndex = GetCurrentMapZoneIndex()
     local currentZoneId = GetZoneId(currentZoneIndex)
     local currentZoneParentId = GetParentZoneId(currentZoneId)
     local currentZoneParentIndex = GetZoneIndex(currentZoneParentId)
-    return currentZoneId, currentZoneParentId, currentZoneIndex, currentZoneParentIndex
+    local mapId = GetCurrentMapId()
+    local mapIndex = GetCurrentMapIndex()
+    return currentZoneId, currentZoneParentId, currentZoneIndex, currentZoneParentIndex, mapId, mapIndex
 end
 
 --Check and get all zone's IDs (zoneId and parentZoneId) and save them to the library's table zoneData.
@@ -470,6 +474,178 @@ function lib:GetZoneNameByMapTexture(mapTileTextureName, patternToUse, chatOutpu
         d("["..libZone.name.."]GetZoneNameByMapTexture\nzone: " ..tostring(zoneName) .. ", subZone: " .. tostring(subzoneName) .. "\nmapTileTexture: " .. tostring(mapTileTextureNameLower))
     end
     return zoneName, subzoneName, mapTileTextureNameLower, mapTileTextureName
+end
+
+local function getCurrentZoneAndGroupStatus()
+    local isInPublicDungeon = false
+    local isInGroupDungeon = false
+    local isInAnyDungeon = false
+    local isInRaid = false
+    local isInDelve = false
+    local isInGroup = false
+    local groupSize = 0
+    local isInPVP = false
+    local playerVar = "player"
+
+    isInPVP = IsPlayerInAvAWorld()
+    isInAnyDungeon = IsAnyGroupMemberInDungeon()  -- returned true if not in group and in solo dungeon/delve until patch API???? Now it returns false
+    isInRaid = IsPlayerInRaid()
+    isInGroup = IsUnitGrouped(playerVar)
+    if not isInAnyDungeon then
+        isInAnyDungeon = (IsUnitInDungeon(playerVar) or GetMapContentType() == MAP_CONTENT_DUNGEON) or false
+    end
+    --Difficulty will be 0 if not in a dungeon, 1 if in a delve, 2 if elsewhere
+    local dungeonDifficulty = ZO_WorldMap_GetMapDungeonDifficulty()
+
+    --Check if user is in any dungeon
+    --As there is no API to check for delves: We assume ungrouped + in normal dungeon = in delve
+    if not isInGroup then
+        isInDelve = (isInAnyDungeon and dungeonDifficulty == DUNGEON_DIFFICULTY_NORMAL) or false
+    else
+        groupSize = GetGroupSize() --SMALL_GROUP_SIZE_THRESHOLD (4) / RAID_GROUP_SIZE_THRESHOLD (12) / GROUP_SIZE_MAX (24)
+        isInDelve = (isInAnyDungeon and dungeonDifficulty == DUNGEON_DIFFICULTY_NORMAL and not isInRaid and groupSize <= SMALL_GROUP_SIZE_THRESHOLD) or false
+    end
+    --Asuming we are in a delve: Check if the zoneId is the one of a public dungeon
+    if isInAnyDungeon == true and not isInGroupDungeon then
+        local pubDungeons = lib.publicDungeonMapIds
+        local _, _, _, _, mapId, _ = lib:GetCurrentZoneIds()
+        isInPublicDungeon = pubDungeons[mapId] or false
+    end
+
+    --Get POI info for group and public dungeons
+    local zoneIndex, poiIndex = GetCurrentSubZonePOIIndices()
+    --d(string.format(">zoneIndex: %s, poiIndex: %s", tostring(zoneIndex), tostring(poiIndex)))
+    local abort = false
+    if zoneIndex == nil then
+        abort = true
+    end
+    if poiIndex == nil then
+        abort = true
+    end
+    if not abort then
+        local _, _, _, iconPath = GetPOIMapInfo(zoneIndex, poiIndex)
+        local iconPathLower = iconPath:lower()
+        --d(">iconPathLower: "..tostring(iconPathLower))
+        if iconPathLower:find("poi_delve") then
+            -- in a delve
+            isInDelve = true
+        end
+        --This wil only work if you are outside the PubDungeon, near it, where the map's POI is shown AND you are in the subzone of that map...
+        isInPublicDungeon = isInPublicDungeon and IsPOIPublicDungeon(zoneIndex, poiIndex)
+        isInGroupDungeon = isInGroupDungeon and IsPOIGroupDungeon(zoneIndex, poiIndex)
+        if isInPublicDungeon then
+            isInDelve = false
+            isInGroupDungeon = false
+        elseif isInGroupDungeon then
+            isInDelve = false
+            isInPublicDungeon = false
+        end
+    end
+    --d("[LibZone.getCurrentZoneAndGroupStatus] PvP: " .. tostring(isInPVP) .. ", Delve: " .. tostring(isInDelve) .. ", PubDun: " .. tostring(isInPublicDungeon) .. ", GroupDun: " .. tostring(isInGroupDungeon) .. ", inGroup: " .. tostring(isInGroup) .. ", groupSize: " .. groupSize)
+    return isInPVP, isInDelve, isInPublicDungeon, isInGroupDungeon, isInRaid, isInGroup, groupSize
+end
+
+--Check if we are grouped and where we currently are (inside any dungen, Ava area)
+--returns 6 booleans: isInPVP, isInDelve, isInPublicDungeon, isInGroupDungeon, isInRaid, isInGroup
+--        1 number: groupSize
+function lib:GetCurrentZoneAndGroupStatus()
+    local isInPVP, isInDelve, isInPublicDungeon, isInGroupDungeon, isInRaid, isInGroup, groupSize = getCurrentZoneAndGroupStatus()
+    return isInPVP, isInDelve, isInPublicDungeon, isInGroupDungeon, isInRaid, isInGroup, groupSize
+end
+
+--Check if we are in a delve
+function lib:IsInDelve()
+    local _, isInDelve, _, _, _, _, _ = getCurrentZoneAndGroupStatus()
+    return isInDelve -- in a delve
+end
+
+--Check if we are in a public dungeon
+function lib:IsInPublicDungeon()
+    local _, _, isInPublicDungeon, _, _, _, _ = getCurrentZoneAndGroupStatus()
+    return isInPublicDungeon -- in a public dungeon
+end
+
+--Check if we are in a group dungeon
+function lib:IsInGroupDungeon()
+    local _, _, _, isInGroupDungeon, _, _, _ = getCurrentZoneAndGroupStatus()
+    return isInGroupDungeon -- in a group dungeon
+end
+
+--Check if we are in a raid/trial
+function lib:IsInTrial()
+    local _, _, _, _, isInRaid, _, _ = getCurrentZoneAndGroupStatus()
+    return isInRaid -- in a raid/trial
+end
+
+--Check if we are in any dungeon
+function lib:IsInAnyDungeon()
+    local _, isInDelve, isInPublicDungeon, isInGroupDungeon, isInRaid, _, _ = getCurrentZoneAndGroupStatus()
+    return isInDelve and isInPublicDungeon and isInGroupDungeon and isInRaid
+end
+
+--Check if we are in any dungeon
+--returns 4 booleans: isInDelve, isInPublicDungeon, isInGroupDungeon, isInRaid
+function lib:GetCurrentDungeonType()
+    local _, isInDelve, isInPublicDungeon, isInGroupDungeon, isInRaid, _, _ = getCurrentZoneAndGroupStatus()
+    return isInDelve, isInPublicDungeon, isInGroupDungeon, isInRaid
+end
+
+--Check if we are in a house
+function lib:IsInHouse()
+    local currentHouseOwner = GetCurrentHouseOwner()
+    local inHouse = ((currentHouseOwner ~= nil and currentHouseOwner ~= "") and GetCurrentZoneHouseId() ~= 0) or false
+    if not inHouse then
+        local x,y,z,rotRad = GetPlayerWorldPositionInHouse()
+        if x == 0 and y == 0 and z == 0 and rotRad == 0 then
+            return false -- not in a house
+        end
+    end
+    return true -- in a house
+end
+
+
+--Check if we are in Cyrodiil (AvA zone)
+function lib:IsInCyrodiil()
+    return IsInCyrodiil()
+end
+
+--Check if we are in Imperial City (AvA zone)
+function lib:IsInImperialCity()
+    return IsInImperialCity()
+end
+
+--Check if we are in a battleground (AvA zone)
+function lib:IsInBattleground()
+    return IsActiveWorldBattleground()
+end
+
+--Check if we are in AvA / PvP
+function lib:IsInPVP()
+    return IsPlayerInAvAWorld()
+end
+
+
+local mapNamesWereBuild = false
+local mapId2Name = {}
+--Gte the namse of all the maps
+function lib:GetMapNames(override)
+    override = override or false
+    if mapNamesWereBuild and not override then return mapId2Name end
+    for mapId = 1, lib.maxMapIds do
+        local mapName = ZO_CachedStrFormat("<<C:1>>", GetMapNameById(mapId))
+        if mapName and mapName ~= "" then
+            mapId2Name[mapId] = mapName
+        end
+    end
+    mapNamesWereBuild = true
+    lib.mapId2Name = mapId2Name
+    --Update the SavedVariables
+    if GetDisplayName() == '@Baertram' then
+        lib.localizedZoneData.mapNames = lib.localizedZoneData.mapNames or {}
+        lib.localizedZoneData.mapNames[apiVersion] = lib.localizedZoneData.mapNames[apiVersion] or {}
+        lib.localizedZoneData.mapNames[apiVersion][clientLang] = mapId2Name
+    end
+    return mapId2Name
 end
 
 ------------------------------------------------------------------------

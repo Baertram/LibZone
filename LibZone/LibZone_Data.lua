@@ -67,11 +67,84 @@ local clientLang 	= lib.currentClientLanguage
 --
 
 
+
 ------------------------------------------------------------------------------------------------------------------------
 --Last updated: 			API100035, PTS Blackwood
---Date:						2021-04-21
+--Date:						2021-04-20
 --Non updated languages:	jp, pl
 ------------------------------------------------------------------------------------------------------------------------
+--ZoneIds of the public dungeons of ESO as there is no real API function to determine we are in any Public Dungeon
+--> See LibZone_Maps.xlsx file, tab "MapId2Name & PubDung List", column "lua table code for LibZone.publicDungeonMapIds"
+lib.publicDungeonMapIds = {
+	[31]=true,     --Die Knochenknacker-Ruinen
+	[42]=true,     --Die Obsidiannarbe
+	[65]=true,     --Der Weihegrund des Finsteren
+	[71]=true,     --Razaks Rad
+	[72]=true,     --Krähenwald
+	[76]=true,     --Die Verlorene Stadt der Na-Totambu
+	[98]=true,     --Der Weihegrund des Finsteren
+	[99]=true,     --Der Weihegrund des Finsteren
+	[115]=true,     --Die vergessenen Krypten
+	[140]=true,     --Die Halle der Toten
+	[144]=true,     --Sanguines Domäne
+	[175]=true,     --Die Blutgrotten
+	[189]=true,     --Die Knochenknacker-Ruinen
+	[268]=true,     --Die Zahnbrecherrinne
+	[278]=true,     --Rulanyils Fall
+	[283]=true,     --Die Ruinen von Wurzelbruch
+	[317]=true,     --Das Düstere Herrenhaus
+	[318]=true,     --Das Düstere Herrenhaus
+	[339]=true,     --Das Dorf der Verlorenen
+	[719]=true,     --Krähenwald
+	[763]=true,     --Das Düstere Herrenhaus
+	[764]=true,     --Das Düstere Herrenhaus
+	[937]=true,     --Rkindaleft
+	[938]=true,     --Rkindaleft
+	[975]=true,     --Das alte Orsinium
+	[979]=true,     --Das alte Orsinium
+	[980]=true,     --Das alte Orsinium
+	[981]=true,     --Das alte Orsinium
+	[982]=true,     --Das alte Orsinium
+	[983]=true,     --Das alte Orsinium
+	[984]=true,     --Das alte Orsinium
+	[989]=true,     --Das alte Orsinium
+	[990]=true,     --Die Blutgrotten
+	[1276]=true,     --Das vergessene Ödland
+	[1310]=true,     --Pfad nach Nchuleftingth
+	[1311]=true,     --Pfad nach Nchuleftingth
+	[1312]=true,     --Pfad nach Nchuleftingth
+	[1314]=true,     --Die Ruinen von Nchuleftingth
+	[1315]=true,     --Lavaebene von Nchuleftingth
+	[1316]=true,     --Lavaebene von Nchuleftingth
+	[1317]=true,     --Kern von Nchuleftingth
+	[1318]=true,     --Heiligtum von Nchuleftingth
+	[1397]=true,     --Karnwasten
+	[1438]=true,     --Sonnenfeste
+	[1636]=true,     --Orkruh
+	[1637]=true,     --Orkruh
+	[1638]=true,     --Orkruh
+	[1639]=true,     --Die Nekropole von Krempen
+	[1751]=true,     --Nchuthnkarst
+	[1774]=true,     --Labyrinthion
+	[1933]=true,     --Die Totenländer
+	[1942]=true,     --Die Totenländer: Aschwald
+	[1943]=true,     --Die Stillen Hallen
+	[1958]=true,     --Die Stillen Hallen
+	[1959]=true,     --Die Stillen Hallen
+	[1973]=true,     --Zenithar's Abbey
+	[1985]=true,     --Zenithars Abtei
+	[1986]=true,     --Zenithars Abtei
+	[1987]=true,     --Zenithars Abtei
+	[1988]=true,     --Zenithars Abtei
+	[1989]=true,     --Zenithars Abtei
+	[2000]=true,     --Die Totenländer
+	[2053]=true,     --Die Totenländer
+	[2054]=true,     --Die Totenländer
+	[2055]=true,     --Die Stillen Hallen
+	[2056]=true,     --Die Stillen Hallen
+	[2077]=true,     --Die Stillen Hallen
+}
+
 
 --The preloaded zone names in different languages
 --Important: If you add new languages be sure to update the table lib.supportedLanguages in file LibZone_Constants.lua

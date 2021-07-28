@@ -31,7 +31,7 @@
 local libZone = {}
 --Addon/Library info
 libZone.name                    = "LibZone"
-libZone.version                 = 7.4
+libZone.version                 = 7.5
 libZone.author                  = "Baertram"
 libZone.url                     = "https://www.esoui.com/downloads/info2171-LibZone.html"
 
@@ -173,6 +173,7 @@ lib.worldName = GetWorldName()
 --Zone data
 lib.zoneData = {}
 lib.localizedZoneData = {}
+lib.publicDungeonMapIds = {}
 
 --Search variables
 lib.searchDirty = true
@@ -182,6 +183,7 @@ lib.searchTranslatedZoneLookupList = {}
 --Maximum zoneIds to scan (as long as there is no constant or function for it we need to "hardcode" a maximum here
 lib.maxZoneIndices = 0
 lib.maxZoneIds = 0
+lib.maxMapIds = 3500 -- Currently there are around 2100 -> API101031 Waking Flame, 20210728 -> Increase this number if there will be added more maps!
 
 --Language and translation
 lib.currentClientLanguage = clientLang
