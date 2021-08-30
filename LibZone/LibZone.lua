@@ -580,7 +580,7 @@ end
 --Check if we are in any dungeon
 function lib:IsInAnyDungeon()
     local _, isInDelve, isInPublicDungeon, isInGroupDungeon, isInRaid, _, _ = getCurrentZoneAndGroupStatus()
-    return isInDelve and isInPublicDungeon and isInGroupDungeon and isInRaid
+    return isInDelve or isInPublicDungeon or isInGroupDungeon or isInRaid
 end
 
 --Check if we are in any dungeon
