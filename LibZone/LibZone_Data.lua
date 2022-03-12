@@ -28,7 +28,6 @@
 LibZone = LibZone or {}
 local lib = LibZone
 
-local libName 		= lib.libraryInfo.name
 local clientLang 	= lib.currentClientLanguage
 
 --This table contains datamined localized zoneData in different languages

@@ -29,8 +29,13 @@ LibZone = LibZone or {}
 
 local lib = LibZone
 local libZone = lib.libraryInfo
+local libraryName = libZone.name
+
 local apiVersion = GetAPIVersion()
 local clientLang = lib.currentClientLanguage
+
+--For SV update
+local isAddonDevOfLibZone = (GetDisplayName() == '@Baertram' and true) or false
 
 ------------------------------------------------------------------------
 -- 	Helper functions
@@ -147,7 +152,7 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
         self.maxZoneIndices, self.maxZoneIds = getMaxZoneIndicesAndIds()
     end
     local maxZoneIndices = self.maxZoneIndices
-    assert(maxZoneIndices ~= nil, "[\'" .. libZone.name .. "\':GetAllZoneDataById]Error: Missing maxZoneIndices!")
+    assert(maxZoneIndices ~= nil, "[\'" .. libraryName .. "\':GetAllZoneDataById]Error: Missing maxZoneIndices!")
     --Local SavedVariable data
     local zoneData = self.zoneData
     if zoneData == nil then
@@ -251,7 +256,7 @@ end
 --->}
 --If no parent zone can be found the return value will be nil.
 function lib:GetZoneDataBySubZone(subZoneId, language)
-    assert (subZoneId ~= nil, "[\'" .. libZone.name .. "\':GetZoneDataBySubZone]Error: Missing SubZoneId!")
+    assert (subZoneId ~= nil, "[\'" .. libraryName .. "\':GetZoneDataBySubZone]Error: Missing SubZoneId!")
     language = language or self.currentClientLanguage
     local retParentZoneTable = {}
     local parentZoneId = GetParentZoneId(subZoneId) or 0
@@ -273,7 +278,7 @@ end
 -->                ["parentZone"] = number zoneId}
 -- }
 function lib:GetZoneData(zoneId, subZoneId, language)
-    assert (zoneId ~= nil, "[\'" .. libZone.name .. "\':GetZoneData]Error: Missing zoneId!")
+    assert (zoneId ~= nil, "[\'" .. libraryName .. "\':GetZoneData]Error: Missing zoneId!")
     language = language or self.currentClientLanguage
     local readZoneData, readSubZoneData
     local zoneData =  self.zoneData
@@ -295,7 +300,7 @@ function lib:GetZoneData(zoneId, subZoneId, language)
             end
         end
     else
-        d("[\'".. libZone.name .. "\':GetZoneData]Error: Missing zoneData for language \"" .. tostring(language) .. "\"!")
+        d("[\'".. libraryName .. "\':GetZoneData]Error: Missing zoneData for language \"" .. tostring(language) .. "\"!")
     end
     return readZoneData, readSubZoneData
 end
@@ -303,11 +308,11 @@ end
 --Show existing zone data to the chat now
 --Output zone informtaion to the chat, using the zoneId, subZoneId (connected to zoneId via parentZoneId) and the language (e.g. "en" or "fr")
 function lib:ShowZoneData(zoneId, subZoneId, language)
-    assert (zoneId ~= nil, "[\'" .. libZone.name .. "\':ShowZoneData]Error: Missing zoneId!")
+    assert (zoneId ~= nil, "[\'" .. libraryName .. "\':ShowZoneData]Error: Missing zoneId!")
     language = language or self.currentClientLanguage
     local zoneIdData, subZoneIdData = self:GetZoneData(zoneId, subZoneId, language)
     if zoneIdData ~= nil then
-        d("[" .. libZone.name .. "]ShowZoneData for zoneId \"".. tostring(zoneId) .. "\", subZoneId: \"".. tostring(subZoneId) .. "\", language: \"" .. tostring(language) .. "\"")
+        d("[" .. libraryName .. "]ShowZoneData for zoneId \"".. tostring(zoneId) .. "\", subZoneId: \"".. tostring(subZoneId) .. "\", language: \"" .. tostring(language) .. "\"")
         d(">Zone name: " .. tostring(zoneIdData.name))
         if zoneIdData.zoneIndex ~= nil then d(">Zone index: " .. tostring(zoneIdData.zoneIndex)) end
         if subZoneIdData ~= nil then
@@ -315,7 +320,7 @@ function lib:ShowZoneData(zoneId, subZoneId, language)
             if subZoneIdData.zoneIndex ~= nil then d(">SubZone index: " .. tostring(subZoneIdData.zoneIndex)) end
         end
     else
-        d("[\'" .. libZone.name .. "\']ShowZoneData for zoneId \"".. tostring(zoneId) .. "\", subZoneId: \"".. tostring(subZoneId) .. "\"\nNo zone data was found for language \"" .. tostring(language) .. "\"!")
+        d("[\'" .. libraryName .. "\']ShowZoneData for zoneId \"".. tostring(zoneId) .. "\", subZoneId: \"".. tostring(subZoneId) .. "\"\nNo zone data was found for language \"" .. tostring(language) .. "\"!")
     end
 end
 
@@ -325,7 +330,7 @@ end
 --language: The language to use for the zoneName
 --->Returns localized String of the zoneName
 function lib:GetZoneName(zoneId, language)
-    assert(zoneId ~= nil, "[\'" .. libZone.name .. "\':GetZoneName]Error: Missing zoneId!")
+    assert(zoneId ~= nil, "[\'" .. libraryName .. "\':GetZoneName]Error: Missing zoneId!")
     language = language or self.currentClientLanguage
     local localizedZoneIdData = self.preloadedZoneNames[language]
     if localizedZoneIdData == nil then
@@ -352,7 +357,7 @@ end
 ---->returnTable[2] = "Clean Test"
 ---->returnTable[3] = "Glenumbra"
 function lib:GetZoneNamesByIds(zoneIdsTable, language)
-    assert (zoneIdsTable ~= nil and type(zoneIdsTable) == "table", "[\'" .. libZone.name .. "\':GetZoneNamesByIds]Error: Missing zoneId table.\nTable's format must be \"[number TableIndex] = number ZoneId,\"!")
+    assert (zoneIdsTable ~= nil and type(zoneIdsTable) == "table", "[\'" .. libraryName .. "\':GetZoneNamesByIds]Error: Missing zoneId table.\nTable's format must be \"[number TableIndex] = number ZoneId,\"!")
     language = language or self.currentClientLanguage
     local retNameTable = {}
     for _, zoneId in pairs(zoneIdsTable) do
@@ -382,7 +387,7 @@ end
 ---->   ["zoneIndex"] = 2,
 ---->}
 function lib:GetZoneDataByIds(zoneIdsTable, language)
-    assert (zoneIdsTable ~= nil and type(zoneIdsTable) == "table", "[\'" .. libZone.name .. "\':GetZoneDataByIds]Error: Missing zoneId table.\nTable's format must be \"[number TableIndex] = number ZoneId,\"!")
+    assert (zoneIdsTable ~= nil and type(zoneIdsTable) == "table", "[\'" .. libraryName .. "\':GetZoneDataByIds]Error: Missing zoneId table.\nTable's format must be \"[number TableIndex] = number ZoneId,\"!")
     language = language or self.currentClientLanguage
     local retZoneDataTable = {}
     for _, zoneId in pairs(zoneIdsTable) do
@@ -402,22 +407,22 @@ end
 -->returnLanguage: The language for the translated results. e.g. you search for "Ostmar" with search language "de" and the return language "en". The result will be the "Eastmarch" zone.
 --->Returns table containing the zoneId as table key and the localized (in language: returnLanguage) full zone name, matching to the search string, as table value
 function lib:GetZoneNameByLocalizedSearchString(searchStr, searchLanguage, returnLanguage)
-    assert (searchStr ~= nil and searchStr ~= "", "[\'" .. libZone.name .. "\':GetZoneNameByLocalizedSearchString]Error: Missing parameter \"searchStr\"!")
+    assert (searchStr ~= nil and searchStr ~= "", "[\'" .. libraryName .. "\':GetZoneNameByLocalizedSearchString]Error: Missing parameter \"searchStr\"!")
     assert (returnLanguage ~= nil and type(returnLanguage) == "string", "[LibZone:GetZoneNameByLocalizedSearchString]Error: Missing or wrong parameter \"returnLanguage\"!")
     local langIsSupported = checkIfLanguageIsSupported(returnLanguage) or false
-    assert (langIsSupported == true, "[\'" .. libZone.name .. "\':GetZoneNameByLocalizedSearchString]Error: Return language \"" .. tostring(returnLanguage) .. "\" is not supported!")
+    assert (langIsSupported == true, "[\'" .. libraryName .. "\':GetZoneNameByLocalizedSearchString]Error: Return language \"" .. tostring(returnLanguage) .. "\" is not supported!")
     langIsSupported = false
     searchLanguage = searchLanguage or self.currentClientLanguage
     --Disabled 2021-04-15, upon request of "SimonIllyan" here: https://www.esoui.com/downloads/info2171-LibZone.html#comments
-    --assert (searchLanguage ~= returnLanguage, "[\'" .. libZone.name .. "\':GetZoneNameByLocalizedSearchString]Error: Search language and returning language must be different!")
+    --assert (searchLanguage ~= returnLanguage, "[\'" .. libraryName .. "\':GetZoneNameByLocalizedSearchString]Error: Search language and returning language must be different!")
     langIsSupported = checkIfLanguageIsSupported(searchLanguage) or false
-    assert (langIsSupported == true, "[\'" .. libZone.name .. "\':GetZoneNameByLocalizedSearchString]Error: Search language \"" .. tostring(searchLanguage) .. "\" is not supported!")
+    assert (langIsSupported == true, "[\'" .. libraryName .. "\':GetZoneNameByLocalizedSearchString]Error: Search language \"" .. tostring(searchLanguage) .. "\" is not supported!")
     local retZoneIdsTable = {}
     local retZoneLocalizedZoneNamesTable = {}
     local localizedSearchZoneData = self.preloadedZoneNames[searchLanguage]
-    assert (localizedSearchZoneData ~= nil, "[\'" .. libZone.name .. "\':GetZoneNameByLocalizedSearchString]Error: Missing localized search zone data with language \"" .. tostring(searchLanguage) .. "\"!")
+    assert (localizedSearchZoneData ~= nil, "[\'" .. libraryName .. "\':GetZoneNameByLocalizedSearchString]Error: Missing localized search zone data with language \"" .. tostring(searchLanguage) .. "\"!")
     local zoneReturnLocalizedData = self.preloadedZoneNames[returnLanguage]
-    assert (zoneReturnLocalizedData ~= nil, "[\'" .. libZone.name .. "\':GetZoneNameByLocalizedSearchString]Error: Missing localized return zone data with language \"" .. tostring(returnLanguage) .. "\"!")
+    assert (zoneReturnLocalizedData ~= nil, "[\'" .. libraryName .. "\':GetZoneNameByLocalizedSearchString]Error: Missing localized return zone data with language \"" .. tostring(returnLanguage) .. "\"!")
     for zoneId, zoneName in pairs(localizedSearchZoneData) do
         if zoneName ~= "" and zo_plainstrfind(zoneName:lower(), searchStr:lower()) then
             table.insert(retZoneIdsTable, zoneId)
@@ -471,7 +476,7 @@ function lib:GetZoneNameByMapTexture(mapTileTextureName, patternToUse, chatOutpu
     regexData = {mapTileTextureNameLower:find(patternToUse)} --maps/([%w%-]+/[%w%-]+[%._][%w%-]+(_%d)?)
     local zoneName, subzoneName = regexData[4], regexData[5]
     if chatOutput == true then
-        d("["..libZone.name.."]GetZoneNameByMapTexture\nzone: " ..tostring(zoneName) .. ", subZone: " .. tostring(subzoneName) .. "\nmapTileTexture: " .. tostring(mapTileTextureNameLower))
+        d("["..libraryName.."]GetZoneNameByMapTexture\nzone: " ..tostring(zoneName) .. ", subZone: " .. tostring(subzoneName) .. "\nmapTileTexture: " .. tostring(mapTileTextureNameLower))
     end
     return zoneName, subzoneName, mapTileTextureNameLower, mapTileTextureName
 end
@@ -512,6 +517,11 @@ local function getCurrentZoneAndGroupStatus()
         isInPublicDungeon = pubDungeons[mapId] or false
     end
 
+    --Difficulty in delves is not always DUNGEON_DIFFICULTY_NORMAL but could be DUNGEON_DIFFICULTY_NONE too :-(
+    if not isInPublicDungeon and not isInDelve and isInAnyDungeon and dungeonDifficulty == DUNGEON_DIFFICULTY_NONE then
+        isInDelve = true
+    end
+
     --Get POI info for group and public dungeons
     local zoneIndex, poiIndex = GetCurrentSubZonePOIIndices()
     --d(string.format(">zoneIndex: %s, poiIndex: %s", tostring(zoneIndex), tostring(poiIndex)))
@@ -531,8 +541,12 @@ local function getCurrentZoneAndGroupStatus()
             isInDelve = true
         end
         --This wil only work if you are outside the PubDungeon, near it, where the map's POI is shown AND you are in the subzone of that map...
-        isInPublicDungeon = isInPublicDungeon and IsPOIPublicDungeon(zoneIndex, poiIndex)
-        isInGroupDungeon = isInGroupDungeon and IsPOIGroupDungeon(zoneIndex, poiIndex)
+        if not isInPublicDungeon then
+            isInPublicDungeon = IsPOIPublicDungeon(zoneIndex, poiIndex)
+        end
+        if not isInGroupDungeon then
+            isInGroupDungeon  = IsPOIGroupDungeon(zoneIndex, poiIndex)
+        end
         if isInPublicDungeon then
             isInDelve = false
             isInGroupDungeon = false
@@ -640,7 +654,7 @@ function lib:GetMapNames(override)
     mapNamesWereBuild = true
     lib.mapId2Name = mapId2Name
     --Update the SavedVariables
-    if GetDisplayName() == '@Baertram' then
+    if isAddonDevOfLibZone then
         lib.localizedZoneData.mapNames = lib.localizedZoneData.mapNames or {}
         lib.localizedZoneData.mapNames[apiVersion] = lib.localizedZoneData.mapNames[apiVersion] or {}
         lib.localizedZoneData.mapNames[apiVersion][clientLang] = mapId2Name
@@ -655,8 +669,8 @@ end
 local function OnLibraryLoaded(event, name)
     --Only load lib if ingame
     if name:find("^ZO_") then return end
-    if name  == libZone.name then
-        EVENT_MANAGER:UnregisterForEvent(libZone.name, EVENT_ADD_ON_LOADED)
+    if name  == libraryName then
+        EVENT_MANAGER:UnregisterForEvent(libraryName, EVENT_ADD_ON_LOADED)
 
         --Get the maximum possible zoneIndex and zoneId
         lib.maxZoneIndices, lib.maxZoneIds = getMaxZoneIndicesAndIds()
@@ -686,5 +700,5 @@ local function OnLibraryLoaded(event, name)
 end
 
 --Load the addon now
-EVENT_MANAGER:UnregisterForEvent(libZone.name, EVENT_ADD_ON_LOADED)
-EVENT_MANAGER:RegisterForEvent(libZone.name, EVENT_ADD_ON_LOADED, OnLibraryLoaded)
+EVENT_MANAGER:UnregisterForEvent(libraryName, EVENT_ADD_ON_LOADED)
+EVENT_MANAGER:RegisterForEvent(libraryName, EVENT_ADD_ON_LOADED, OnLibraryLoaded)
