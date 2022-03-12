@@ -504,11 +504,14 @@ local function getCurrentZoneAndGroupStatus()
 
     --Check if user is in any dungeon
     --As there is no API to check for delves: We assume ungrouped + in normal dungeon = in delve
+    --Difficulty in delves should be DUNGEON_DIFFICULTY_NONE
     if not isInGroup then
-        isInDelve = (isInAnyDungeon and dungeonDifficulty == DUNGEON_DIFFICULTY_NORMAL) or false
+        isInDelve = (isInAnyDungeon and dungeonDifficulty == DUNGEON_DIFFICULTY_NONE) or false
     else
         groupSize = GetGroupSize() --SMALL_GROUP_SIZE_THRESHOLD (4) / RAID_GROUP_SIZE_THRESHOLD (12) / GROUP_SIZE_MAX (24)
-        isInDelve = (isInAnyDungeon and dungeonDifficulty == DUNGEON_DIFFICULTY_NORMAL and not isInRaid and groupSize <= SMALL_GROUP_SIZE_THRESHOLD) or false
+        local isInRaidChecks = (not isInRaid and groupSize <= SMALL_GROUP_SIZE_THRESHOLD and true) or false
+        isInGroupDungeon = (isInAnyDungeon and (dungeonDifficulty == DUNGEON_DIFFICULTY_NORMAL or DUNGEON_DIFFICULTY_VETERAN) and isInRaidChecks) or false
+        isInDelve = (not isInGroupDungeon and (isInAnyDungeon and dungeonDifficulty == DUNGEON_DIFFICULTY_NONE and isInRaidChecks)) or false
     end
     --Asuming we are in a delve: Check if the zoneId is the one of a public dungeon
     if isInAnyDungeon == true and not isInGroupDungeon then
@@ -517,12 +520,9 @@ local function getCurrentZoneAndGroupStatus()
         isInPublicDungeon = pubDungeons[mapId] or false
     end
 
-    --Difficulty in delves is not always DUNGEON_DIFFICULTY_NORMAL but could be DUNGEON_DIFFICULTY_NONE too :-(
-    if not isInPublicDungeon and not isInDelve and isInAnyDungeon and dungeonDifficulty == DUNGEON_DIFFICULTY_NONE then
-        isInDelve = true
-    end
-
     --Get POI info for group and public dungeons
+    --This wil only work if you are outside the PubDungeon, near it, where the map's POI is shown AND you are in the subzone of that map...
+    --[[
     local zoneIndex, poiIndex = GetCurrentSubZonePOIIndices()
     --d(string.format(">zoneIndex: %s, poiIndex: %s", tostring(zoneIndex), tostring(poiIndex)))
     local abort = false
@@ -540,7 +540,6 @@ local function getCurrentZoneAndGroupStatus()
             -- in a delve
             isInDelve = true
         end
-        --This wil only work if you are outside the PubDungeon, near it, where the map's POI is shown AND you are in the subzone of that map...
         if not isInPublicDungeon then
             isInPublicDungeon = IsPOIPublicDungeon(zoneIndex, poiIndex)
         end
@@ -555,6 +554,7 @@ local function getCurrentZoneAndGroupStatus()
             isInPublicDungeon = false
         end
     end
+    ]]
     --d("[LibZone.getCurrentZoneAndGroupStatus] PvP: " .. tostring(isInPVP) .. ", Delve: " .. tostring(isInDelve) .. ", PubDun: " .. tostring(isInPublicDungeon) .. ", GroupDun: " .. tostring(isInGroupDungeon) .. ", inGroup: " .. tostring(isInGroup) .. ", groupSize: " .. groupSize)
     return isInPVP, isInDelve, isInPublicDungeon, isInGroupDungeon, isInRaid, isInGroup, groupSize
 end
