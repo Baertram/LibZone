@@ -494,8 +494,10 @@ local function getCurrentZoneAndGroupStatus()
 
     isInPVP = IsPlayerInAvAWorld()
     isInAnyDungeon = IsAnyGroupMemberInDungeon()  -- returned true if not in group and in solo dungeon/delve until patch API???? Now it returns false
-    isInRaid = IsPlayerInRaid()
     isInGroup = IsUnitGrouped(playerVar)
+    groupSize = GetGroupSize() --SMALL_GROUP_SIZE_THRESHOLD (4) / RAID_GROUP_SIZE_THRESHOLD (12) / GROUP_SIZE_MAX (24)
+    isInRaid = IsPlayerInRaid()
+    local isNotInRaidChecks = (not isInRaid and groupSize <= SMALL_GROUP_SIZE_THRESHOLD) or false
     if not isInAnyDungeon then
         isInAnyDungeon = (IsUnitInDungeon(playerVar) or GetMapContentType() == MAP_CONTENT_DUNGEON) or false
     end
@@ -505,14 +507,9 @@ local function getCurrentZoneAndGroupStatus()
     --Check if user is in any dungeon
     --As there is no API to check for delves: We assume ungrouped + in normal dungeon = in delve
     --Difficulty in delves should be DUNGEON_DIFFICULTY_NONE
-    if not isInGroup then
-        isInDelve = (isInAnyDungeon and dungeonDifficulty == DUNGEON_DIFFICULTY_NONE) or false
-    else
-        groupSize = GetGroupSize() --SMALL_GROUP_SIZE_THRESHOLD (4) / RAID_GROUP_SIZE_THRESHOLD (12) / GROUP_SIZE_MAX (24)
-        local isInRaidChecks = (not isInRaid and groupSize <= SMALL_GROUP_SIZE_THRESHOLD and true) or false
-        isInGroupDungeon = (isInAnyDungeon and (dungeonDifficulty == DUNGEON_DIFFICULTY_NORMAL or DUNGEON_DIFFICULTY_VETERAN) and isInRaidChecks) or false
-        isInDelve = (not isInGroupDungeon and (isInAnyDungeon and dungeonDifficulty == DUNGEON_DIFFICULTY_NONE and isInRaidChecks)) or false
-    end
+    isInGroupDungeon = (isInAnyDungeon and (dungeonDifficulty == DUNGEON_DIFFICULTY_NORMAL or DUNGEON_DIFFICULTY_VETERAN) and isNotInRaidChecks) or false
+    isInDelve = (not isInGroupDungeon and (isInAnyDungeon and dungeonDifficulty == DUNGEON_DIFFICULTY_NONE) and isNotInRaidChecks) or false
+
     --Asuming we are in a delve: Check if the zoneId is the one of a public dungeon
     if isInAnyDungeon == true and not isInGroupDungeon then
         local pubDungeons = lib.publicDungeonMapIds
