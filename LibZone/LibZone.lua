@@ -37,6 +37,8 @@ local clientLang = lib.currentClientLanguage
 --For SV update
 local isAddonDevOfLibZone = (GetDisplayName() == '@Baertram' and true) or false
 
+local pubDungeons
+
 ------------------------------------------------------------------------
 -- 	Helper functions
 ------------------------------------------------------------------------
@@ -501,9 +503,29 @@ local function getCurrentZoneAndGroupStatus()
     if not isInAnyDungeon then
         isInAnyDungeon = (IsUnitInDungeon(playerVar) or GetMapContentType() == MAP_CONTENT_DUNGEON) or false
     end
-    --Difficulty will be 0 if not in a dungeon, 1 if in a delve, 2 if elsewhere
-    local dungeonDifficulty = ZO_WorldMap_GetMapDungeonDifficulty()
 
+    --Check if user is in any dungeon
+	if isInAnyDungeon and isNotInRaidChecks then
+        --Difficulty will be 0 if not in a dungeon, 1 if in a delve, 2 if elsewhere
+        local dungeonDifficulty = ZO_WorldMap_GetMapDungeonDifficulty()
+		-- if Difficulty is anything other than zero; it's a Group Dungeon
+		if dungeonDifficulty > DUNGEON_DIFFICULTY_NONE then
+			isInGroupDungeon = true
+		else
+		-- if Difficulty is zero; it's either a Delve or a Public Dungeon
+		-- check the Public Dungeons list first
+			pubDungeons = pubDungeons or lib.publicDungeonMapIds
+			local _, _, _, _, mapId, _ = lib:GetCurrentZoneIds()
+            if mapId ~= nil then
+                isInPublicDungeon = pubDungeons[mapId] or false
+            end
+
+		-- if it isn't a Public Dungeon, it's a Delve
+			isInDelve = not isInPublicDungeon
+		end
+	end
+
+    --[[
     --Check if user is in any dungeon
     --As there is no API to check for delves: We assume ungrouped + in normal dungeon = in delve
     --Difficulty in delves should be DUNGEON_DIFFICULTY_NONE
@@ -516,6 +538,7 @@ local function getCurrentZoneAndGroupStatus()
         local _, _, _, _, mapId, _ = lib:GetCurrentZoneIds()
         isInPublicDungeon = pubDungeons[mapId] or false
     end
+    ]]
 
     --Get POI info for group and public dungeons
     --This wil only work if you are outside the PubDungeon, near it, where the map's POI is shown AND you are in the subzone of that map...
