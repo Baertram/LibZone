@@ -120,9 +120,19 @@ end
 ------------------------------------------------------------------------
 -- 	Library functions
 ------------------------------------------------------------------------
+--Get the current map's parent mapId
+--> Returns: number parentMapId
+function lib:GetParentMapId(mapId)
+  local _, _, _, zoneIndex, _ = GetMapInfoById(mapId)
+  local zoneId = GetZoneId(zoneIndex)
+  local parentZoneId = GetParentZoneId(zoneId)
+  local parentMapId = GetMapIdByZoneId(parentZoneId)
+  return parentMapId
+end
+
 --Get the current map's zoneIndex and via the index get the zoneId, the parent zoneId, and return them
 --+ the current zone's index and parent zone index
---> Returns: number currentZoneId, number currentZoneParentId, number currentZoneIndex, number currentZoneParentIndex, number mapId, number mapIndex
+--> Returns: number currentZoneId, number currentZoneParentId, number currentZoneIndex, number currentZoneParentIndex, number mapId, number mapIndex, number parentMapId
 function lib:GetCurrentZoneIds()
     local currentZoneIndex = GetCurrentMapZoneIndex()
     local currentZoneId = GetZoneId(currentZoneIndex)
@@ -130,7 +140,8 @@ function lib:GetCurrentZoneIds()
     local currentZoneParentIndex = GetZoneIndex(currentZoneParentId)
     local mapId = GetCurrentMapId()
     local mapIndex = GetCurrentMapIndex()
-    return currentZoneId, currentZoneParentId, currentZoneIndex, currentZoneParentIndex, mapId, mapIndex
+    local parentMapId = GetMapIdByIndex(currentZoneParentIndex)
+    return currentZoneId, currentZoneParentId, currentZoneIndex, currentZoneParentIndex, mapId, mapIndex, parentMapId
 end
 
 --Check and get all zone's IDs (zoneId and parentZoneId) and save them to the library's table zoneData.
