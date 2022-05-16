@@ -38,7 +38,6 @@ local clientLang = lib.currentClientLanguage
 local isAddonDevOfLibZone = (GetDisplayName() == '@Baertram' and true) or false
 
 local pubDungeons
-local poiDataTable = {}
 
 ------------------------------------------------------------------------
 -- 	Helper functions
@@ -289,9 +288,19 @@ end
 ------------------------------------------------------------------------
 -- 	Library functions
 ------------------------------------------------------------------------
+--Get the current map's parent mapId
+--> Returns: number parentMapId
+function lib:GetParentMapId(mapId)
+  local _, _, _, zoneIndex, _ = GetMapInfoById(mapId)
+  local zoneId = GetZoneId(zoneIndex)
+  local parentZoneId = GetParentZoneId(zoneId)
+  local parentMapId = GetMapIdByZoneId(parentZoneId)
+  return parentMapId
+end
+
 --Get the current map's zoneIndex and via the index get the zoneId, the parent zoneId, and return them
 --+ the current zone's index and parent zone index
---> Returns: number currentZoneId, number currentZoneParentId, number currentZoneIndex, number currentZoneParentIndex, number mapId, number mapIndex
+--> Returns: number currentZoneId, number currentZoneParentId, number currentZoneIndex, number currentZoneParentIndex, number mapId, number mapIndex, number parentMapId
 function lib:GetCurrentZoneIds()
     local currentZoneIndex = GetCurrentMapZoneIndex()
     local currentZoneId = GetZoneId(currentZoneIndex)
@@ -299,7 +308,8 @@ function lib:GetCurrentZoneIds()
     local currentZoneParentIndex = GetZoneIndex(currentZoneParentId)
     local mapId = GetCurrentMapId()
     local mapIndex = GetCurrentMapIndex()
-    return currentZoneId, currentZoneParentId, currentZoneIndex, currentZoneParentIndex, mapId, mapIndex
+    local parentMapId = GetMapIdByIndex(currentZoneParentIndex)
+    return currentZoneId, currentZoneParentId, currentZoneIndex, currentZoneParentIndex, mapId, mapIndex, parentMapId
 end
 
 --Check and get all zone's IDs (zoneId and parentZoneId) and save them to the library's table zoneData.
@@ -310,7 +320,6 @@ end
 --Parameters:
 -->reBuildNew: Boolean [true=Rebuild the zoneData for all zones, even if they already exist / false=Skip already existing zoneIds]
 -->doReloadUI: Boolean [true=If at least one zoneId was added/updated, do a ReloadUI() at the end to update the SavaedVariables now / false=No autoamtic ReloadUI()]
-
 function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
     reBuildNew = reBuildNew or false
     doReloadUI = doReloadUI or false
@@ -342,10 +351,6 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
     --d(">languageIsMissingInTotal: " ..tostring(languageIsMissingInTotal))
     --Loop over all zone Ids and get it's data + name
     local addedAtLeastOne = false
-
-	-- Create the table used to add poiInfo to zoneData
-	buildPoiDataTable()
-
     --for zoneId = 1, maxZoneId, 1 do
     for zoneIndexOfZoneId=0, maxZoneIndices do
         local zoneId = GetZoneId(zoneIndexOfZoneId)
@@ -413,11 +418,7 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
         --and add a timestamp
         if doReloadUI then ReloadUI() end
     end
-
-	-- Clear the poiDataTable
-	poiDataTable = nil
 end
-
 
 --Return the zoneData for all zones and all languages
 -->Returns table:
@@ -880,7 +881,7 @@ local function OnLibraryLoaded(event, name)
 
         --Load SavedVariables
         librarySavedVariables()
-		
+
         --EVENT_MANAGER:RegisterForEvent(lib.name, EVENT_ZONE_CHANGED, OnZoneChanged)
         --Did the API version change since last zoneID check? Then rebuild the zoneIDs now!
         local currentAPIVersion = lib.currentAPIVersion
