@@ -38,6 +38,7 @@ local clientLang = lib.currentClientLanguage
 local isAddonDevOfLibZone = (GetDisplayName() == '@Baertram' and true) or false
 
 local pubDungeons
+local poiDataTable
 
 ------------------------------------------------------------------------
 -- 	Helper functions
