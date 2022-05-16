@@ -406,6 +406,8 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
             end
         end
     end
+	-- Clear the poiDataTable
+	poiDataTable = nil
     --Was at least one zoneId added/changed?
     if addedAtLeastOne then
         --Update the API version as the zoneIds check was done
