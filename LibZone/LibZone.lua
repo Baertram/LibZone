@@ -118,22 +118,6 @@ local function checkOtherLanguagesZoneDataAndTransferFromSavedVariables()
     end
 end
 
--- This table contains parentZoneId modifiers for select zones.
-local geographicalParentZoneId = {
-	[678] = 181, -- Imperial City Prison, force the use of Cyrodiil
-	[688] = 181, -- White-Gold Tower, force the use of Cyrodiil
-	[1027] = 1027, -- Artaeum. Normally is Summerset.
-	[1283] = 1283, -- The Shambles. Normally is Fargrave  City District.
---	[1283] = 1283, -- Fargrave. set to use Faregrave instead of Fargrave City District.
-	
-	-- The parentZoneId for the following normally are the same as zoneId.
-	[1005] = 823, -- Linchal Grand Manor
-	[1108] = 726, -- Lakemire Xanmeer Manor.
-	[1200] = 92, -- Thieves' Oasis.
-	[1264] = 1207, -- Stone Eagle Aerie
-	[1109] = 101, -- Enchanted Snow Globe
-	[1125] = 101, -- Frostvault Chasm
-}
 --Build the data table for poi indices to be added to subzone data.
 -- Creates table:
 -- poiDataTable = {
@@ -144,7 +128,6 @@ local geographicalParentZoneId = {
 --			}
 --    },
 --}
-local wayShrineString = GetString(SI_DEATH_PROMPT_WAYSHRINE)
 local function buildPoiDataTable()
 	-- The initial data is for zones that do not match up properly by name.
 	poiDataTable = {
