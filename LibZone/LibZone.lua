@@ -349,6 +349,8 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
     if preloadedZoneNamesTable == nil then
         languageIsMissingInTotal = true
     end
+	-- Create the table used to add poiInfo to zoneData
+	buildPoiDataTable()
     --d(">languageIsMissingInTotal: " ..tostring(languageIsMissingInTotal))
     --Loop over all zone Ids and get it's data + name
     local addedAtLeastOne = false
