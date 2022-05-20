@@ -280,24 +280,36 @@ removeNonLiveAPIVersionEntriesFromLibZoneData()
 lib.preloadedZoneNames = preloadedZoneNames
 
 
+
 --Localized "Wayshrine" string used to exclude wayshrine map pins.
 lib.wayshrineString = GetString(SI_DEATH_PROMPT_WAYSHRINE)
 
--- This table contains parentZoneId modifiers for select zones.
-lib.geographicalParentZoneIds = {
-	[678] = 181, -- Imperial City Prison, force the use of Cyrodiil
-	[688] = 181, -- White-Gold Tower, force the use of Cyrodiil
-	[1027] = 1027, -- Artaeum. Normally is Summerset.
-	[1283] = 1283, -- The Shambles. Normally is Fargrave  City District.
---	[1283] = 1283, -- Fargrave. set to use Faregrave instead of Fargrave City District.
-	
-	-- The parentZoneId for the following normally are the same as zoneId.
-	[1005] = 823, -- Linchal Grand Manor
-	[1108] = 726, -- Lakemire Xanmeer Manor.
-	[1200] = 92, -- Thieves' Oasis.
-	[1264] = 1207, -- Stone Eagle Aerie
-	[1109] = 101, -- Enchanted Snow Globe
-	[1125] = 101, -- Frostvault Chasm
+--This table is used to get the poiName from poi indices in order to match with the poiData.
+--[zoneId]{ -- reason
+--		["poiIndex"] = number,
+--		["poiZoneIndex"] = number,
+--},
+lib.poiRefrenceTable = {
+			-- zoneName -- poiName
+	[469] = { -- Tomb of Apostates -- Tomb of the Apostates
+		["poiIndex"] = 35,
+		["poiZoneIndex"] = 11,
+	},
+	[913] = { -- The Mage's Staff -- Spellscar
+		["poiIndex"] = 9,
+		["poiZoneIndex"] = 500,
+	},
+	[910] = { -- Elinhir Sewerworks -- Elinhir -- Closest pin to use since Elinhir is not a zone.
+		["poiIndex"] = 8,
+		["poiZoneIndex"] = 500,
+	},
+	[677] = { -- Maelstrom Arena -- Arena: Maelstrom
+		["poiIndex"] = 55,
+		["poiZoneIndex"] = 379,
+	},
+			-- Parent map is an internal zone, use parent's parent
+	[915] = { -- Skyreach Temple. Located inside Loth'Na Caverns. This will point to Loth'Na Caverns to show where it is.
+		["poiIndex"] = 18,
+		["poiZoneIndex"] = 500,
+	},
 }
-
-
