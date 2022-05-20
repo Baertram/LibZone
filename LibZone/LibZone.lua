@@ -169,8 +169,6 @@ local function buildPoiDataTable()
 				local entry = {
 					poiIndex = poiIndex,
 					poiZoneIndex = zoneIndexOfZoneId, -- the parent zoneIndex
-					poiName = poiName .. ' --> debug only', -- poiName
-					parentZoneName = GetZoneNameById(zoneId) .. ' --> debug only',
 				}
 				poiName = ZO_CachedStrFormat(SI_ZONE_NAME, poiName):lower()
 				if poiDataTable[poiName] and poiName:find(' i$') ~= nil then
