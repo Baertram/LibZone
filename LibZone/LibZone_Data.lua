@@ -313,3 +313,9 @@ lib.poiRefrenceTable = {
 		["poiZoneIndex"] = 500,
 	},
 }
+
+lib.adjustedParentZoneIds = {
+	[678] = 584, -- Imperial City Prison --> Imperial City
+	[688] = 584, -- White-Gold Tower --> Imperial City
+	[1209] = 1208, -- Gloomreach --> Blackreach: Arkthzand Cavern
+}
