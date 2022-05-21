@@ -858,6 +858,8 @@ end
 -->}
 function lib:GetZoneMapPinInfo(zoneId, parentZoneId)
 	if zoneId == nil or type(zoneId) ~= 'number' then return end
+	parentZoneId = parentZoneId or GetParentZoneId(zoneId)
+	
 	local zoneInfo = self.zoneData[zoneId]
 	if not zoneInfo then return end
 	local mapInfo = zoneInfo.mapInfo
