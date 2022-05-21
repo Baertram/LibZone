@@ -924,7 +924,7 @@ local getZoneMapPinInfo = lib.GetZoneMapPinInfo
 
 --Get the geographical parentZoneId of a zoneId. This will not use the games API function GetParenZoneId(zoneId) as this
 --might return any other zoneId which is not the geographical parent zoneId. If you need to get the normal parent zoneId
---use the lib's API function lib:Get
+--use the lib's API function lib:GetCurrentZoneIds()
 -->return: number:nilable parentZoneId
 function lib:GetZoneGeographicalParentZoneId(zoneId)
 	if zoneId == nil or type(zoneId) ~= 'number' then return end
