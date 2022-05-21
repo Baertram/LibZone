@@ -374,23 +374,12 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
                         zoneDataForId.parentZone = zoneParentIdOfZoneId
                     end
                 end
-				-- Get parentMapZoneId and pinInfo.
-				-- pinInfo is table of map pin indices {poiIndex = number, poiZoneIndex = number}
-				local parentMapZoneId, pinInfo = getPinInfo(zoneId, zoneDataForId.parentZone)
-				-- If pinInfo then add it to zone data.
-				if pinInfo and zoneDataForId.pinInfo == nil then
-					zoneDataForId.pinInfo = pinInfo
-				end
-				-- The parentMapZoneId is based on geographical location.
-				if zoneDataForId.parentMapZoneId == nil then
-					zoneDataForId.parentMapZoneId = parentMapZoneId
-				end
-				-- Get mapInfo.
-				local mapInfo = getMapInfo(zoneId)
-				-- If mapInfo then add it to zone data.
-				if mapInfo then
-					zoneDataForId.mapInfo = mapInfo
-				end
+		-- Get mapInfo.
+		local mapInfo = getMapInfo(zoneId)
+		-- If mapInfo then add it to zone data.
+		if mapInfo then
+			zoneDataForId.mapInfo = mapInfo
+		end
             end
         end
     end
