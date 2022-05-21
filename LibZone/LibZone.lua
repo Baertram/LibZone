@@ -860,12 +860,12 @@ function lib:GetZoneMapPinInfo(zoneId, parentZoneId)
 	if zoneId == nil or type(zoneId) ~= 'number' then return end
 	parentZoneId = parentZoneId or GetParentZoneId(zoneId)
 	
+	local poiInfo
 	local zoneInfo = self.zoneData[zoneId]
 	if not zoneInfo then return end
 	local mapInfo = zoneInfo.mapInfo
 	if mapInfo then
 		-- Try to get pinInfo using parentZoneId
-		local poiInfo
 		if parentZoneId then
 			poiInfo = mapInfo[parentZoneId]
 		end
@@ -874,8 +874,8 @@ function lib:GetZoneMapPinInfo(zoneId, parentZoneId)
 			-- These zones also only have 1 entry.
 			parentZoneId, poiInfo = next(mapInfo) --> where parentZoneId is where the zone's map pin exists on.
 		end
-		return parentZoneId, poiInfo
 	end
+	return parentZoneId, poiInfo
 end
 
 --Example: -->can be removed or reduced<--
