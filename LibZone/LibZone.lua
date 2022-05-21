@@ -916,7 +916,14 @@ end
 
 -->return: number: parentZoneId
 function lib:GetZonGeographicalParentZoneId(zoneId)
-	local parentZoneId = lib.adjustedParentZoneIds[zoneId]
+	local zoneInfo = lib.adjustedParentMultiZoneIds[zoneId]
+	
+	if zoneInfo then
+		-- This zone exists in multiple zones, if player is in parent zone then use it or use first entry.
+		local currentZoneId = GetUnitWorldPosition("player")
+		parentZoneId = zoneInfo[currentZoneId] or select(2, next(zoneInfo))
+	end
+	
 	if not parentZoneId then
 		parentZoneId = lib:GetZoneMapPinInfo(zoneId)
 	end
