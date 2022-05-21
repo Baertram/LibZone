@@ -27,6 +27,8 @@ local lib = LibZone
 local libZone = lib.libraryInfo
 local libraryName = libZone.name
 
+local EM = EVENT_MANAGER
+
 local apiVersion = GetAPIVersion()
 local clientLang = lib.currentClientLanguage
 
@@ -964,6 +966,294 @@ function lib:GetGeographicalParentMapId(mapId)
 	return getZoneGeographicalParentMapId(lib, GetZoneId(zoneIndex))
 end
 
+
+
+
+
+
+
+
+
+
+------------------------------------------------------------------------------
+-- Zone detection by the help of InstanceDisplayType
+-- -> Only available after a RequestForJump was done or a loading screen has happened and
+-- -> event_player_activated was called
+--
+--From https://gitlab.com/taxtalis/rulebased-inventory/-/blob/2.28/Modules/Event.lua#L670
+--> Allowed to take over to LibZone by mrei-kiel, May 16th 2022
+--
+-- Added 2022-05-21 by Baertram
+------------------------------------------------------------------------------
+--The LibZone constants for the "Where are we" checks
+LIBZONE_WHEREAREWE_OVERLAND =               1
+LIBZONE_WHEREAREWE_SOLO =                   2
+LIBZONE_WHEREAREWE_DUNGEON =                3
+LIBZONE_WHEREAREWE_RAID =                   4
+LIBZONE_WHEREAREWE_GROUP_DELVE =            5
+LIBZONE_WHEREAREWE_PUBLIC_DUNGEON =         6
+LIBZONE_WHEREAREWE_DELVE =                  7
+LIBZONE_WHEREAREWE_PVP =                    8
+LIBZONE_WHEREAREWE_CYRODIIL =               9
+LIBZONE_WHEREAREWE_BATTLEGROUND =           10
+LIBZONE_WHEREAREWE_IMPERIALCITY =           11
+LIBZONE_WHEREAREWE_IMPERIALCITYDISTRICT =   12
+LIBZONE_WHEREAREWE_IMPERIALCITYSEWERS =     13
+LIBZONE_WHEREAREWE_OUTLAWZONE =             14
+LIBZONE_WHEREAREWE_JUSTICEAREA =            15
+LIBZONE_WHEREAREWE_TELVARAREA =             16
+LIBZONE_WHEREAREWE_CAMPAIGN =               17
+LIBZONE_WHEREAREWE_TUTORIAL =               18
+LIBZONE_WHEREAREWE_HOUSE =                  19
+
+--The variables for the instanceDisplayType event checks
+local instanceDisplayType = -1
+local newInstanceDisplayType
+
+-- Allow only certain types of pins/zoneCompletion/pinTextures in "search closest POI"
+local allowPOIType = {
+	[POI_TYPE_PUBLIC_DUNGEON] = true,
+    [POI_TYPE_GROUP_DUNGEON] = true
+}
+local allowZoneCompletionType = {
+	[ZONE_COMPLETION_TYPE_DELVES] = true,
+	[ZONE_COMPLETION_TYPE_GROUP_DELVES] = true,
+    [ZONE_COMPLETION_TYPE_PUBLIC_DUNGEONS] = true
+}
+local allowPinTextureName = {
+    ["/esoui/art/icons/poi/poi_delve_incomplete.dds"] = true,
+    ["/esoui/art/icons/poi/poi_delve_complete.dds"] = true,
+    ["/esoui/art/icons/poi/poi_groupdelve_incomplete.dds"] = true,
+    ["/esoui/art/icons/poi/poi_groupdelve_complete.dds"] = true,
+    ["/esoui/art/icons/poi/poi_raiddungeon_incomplete.dds"] = true,
+    ["/esoui/art/icons/poi/poi_raiddungeon_complete.dds"] = true,
+    ["/esoui/art/icons/poi/poi_solotrial_incomplete.dds"] = true,
+    ["/esoui/art/icons/poi/poi_solotrial_complete.dds"] = true
+}
+
+
+-- InGameAPI -----------------------------------------------------------------
+-- https://wiki.esoui.com/PvP_Zone_Detection
+local function whereAreWe_IsInPvP()
+	return IsPlayerInAvAWorld() or IsActiveWorldBattleground()
+end
+local function whereAreWe_IsInBattlegrounds()
+	return IsActiveWorldBattleground()
+end
+local function whereAreWe_IsInCyrodiil() -- we think Delves in Cyrodiil should still count as in Cyrodiil
+	return IsPlayerInAvAWorld() and not IsInImperialCity()
+end
+--[[
+local function whereAreWe_IsInCyrodiilOverland()
+	return IsInCyrodiil()
+end
+]]
+local function whereAreWe_IsInImperialCity()
+	return IsInImperialCity()
+end
+local function whereAreWe_IsInImperialCityDistrict()
+	return IsInImperialCity() and GetCurrentMapIndex() ~= nil
+end
+local function whereAreWe_IsInImperialSewers()
+	return IsInImperialCity() and GetCurrentMapIndex() == nil
+end
+local function whereAreWe_IsInOutlawRefuge()
+	return IsInOutlawZone()
+end
+local function whereAreWe_IsJusticeEnabled() -- suspected to be only true for PvE overland
+	return IsInJusticeEnabledZone()
+end
+local function whereAreWe_IsTelvarEnabled()
+	return DoesCurrentZoneHaveTelvarStoneBehavior()
+end
+local function whereAreWe_IsInCampaign()
+	return IsInCampaign()
+end
+local function whereAreWe_IsInTutorial()
+	return IsInTutorialZone()
+end
+
+-- Workaround ----------------------------------------------------------------
+local function whereAreWe_IsInHouse()
+	local x,y,z,rotRad = GetPlayerWorldPositionInHouse()
+	return x ~= 0 or y ~= 0 or z ~= 0 or rotRad ~= 0
+end
+-- Workaround via stored INSTANCE_DISPLAY -> See events below as this will be only filled after certain evetns have fired
+local function whereAreWe_IsInTrial()
+	return instanceDisplayType == INSTANCE_DISPLAY_TYPE_RAID
+end
+local function whereAreWe_IsInDungeon()
+	return instanceDisplayType == INSTANCE_DISPLAY_TYPE_DUNGEON
+end
+local function whereAreWe_IsInPublicDungeon()
+	return instanceDisplayType == INSTANCE_DISPLAY_TYPE_PUBLIC_DUNGEON
+end
+local function whereAreWe_IsInSoloContent()
+	return instanceDisplayType == INSTANCE_DISPLAY_TYPE_SOLO
+end
+local function whereAreWe_IsInDelve()
+	return instanceDisplayType == INSTANCE_DISPLAY_TYPE_DELVE
+end
+local function whereAreWe_IsInGroupDelve()
+	return instanceDisplayType == INSTANCE_DISPLAY_TYPE_GROUP_DELVE
+end
+
+--The mapping of instanceDisplayType to it's check functions
+local libZoneWhereAreWeToCheckFunc = {
+    [LIBZONE_WHEREAREWE_SOLO] =                 whereAreWe_IsInSoloContent,
+    [LIBZONE_WHEREAREWE_DUNGEON] =              whereAreWe_IsInDungeon,
+    [LIBZONE_WHEREAREWE_RAID] =                 whereAreWe_IsInTrial,
+    [LIBZONE_WHEREAREWE_GROUP_DELVE] =          whereAreWe_IsInGroupDelve,
+    [LIBZONE_WHEREAREWE_PUBLIC_DUNGEON] =       whereAreWe_IsInPublicDungeon,
+    [LIBZONE_WHEREAREWE_DELVE] =                whereAreWe_IsInDelve,
+    [LIBZONE_WHEREAREWE_PVP] =                  whereAreWe_IsInPvP,
+    [LIBZONE_WHEREAREWE_CYRODIIL] =             whereAreWe_IsInCyrodiil,
+    [LIBZONE_WHEREAREWE_BATTLEGROUND] =         whereAreWe_IsInBattlegrounds,
+    [LIBZONE_WHEREAREWE_IMPERIALCITY] =         whereAreWe_IsInImperialCity,
+    [LIBZONE_WHEREAREWE_IMPERIALCITYDISTRICT] = whereAreWe_IsInImperialCityDistrict,
+    [LIBZONE_WHEREAREWE_IMPERIALCITYSEWERS] =   whereAreWe_IsInImperialSewers,
+    [LIBZONE_WHEREAREWE_OUTLAWZONE] =           whereAreWe_IsInOutlawRefuge,
+    [LIBZONE_WHEREAREWE_JUSTICEAREA] =          whereAreWe_IsJusticeEnabled,
+    [LIBZONE_WHEREAREWE_TELVARAREA] =           whereAreWe_IsTelvarEnabled,
+    [LIBZONE_WHEREAREWE_CAMPAIGN] =             whereAreWe_IsInCampaign,
+    [LIBZONE_WHEREAREWE_TUTORIAL] =             whereAreWe_IsInTutorial,
+    [LIBZONE_WHEREAREWE_HOUSE] =                whereAreWe_IsInHouse,
+}
+
+
+--[[
+local function debugGetPinTextureNames()
+	MapZoomOut() -- zoom out map once to get correct parent map for weird maps like Asylum Sanctorium -> Brass Fortress but GetParentZoneId is Clockwork
+	local zoneIndex = GetCurrentMapZoneIndex()
+	SetMapToPlayerLocation() -- zoom in again to not mess with map setting, TODO: save initial zone and restore it?
+	d("---" .. GetZoneNameByIndex(zoneIndex) .. "---")
+	local textures = {}
+	for poiIndex = 1, GetNumPOIs(zoneIndex) do
+		local normalizedX, normalizedZ, mapDisplayPinType, textureName, isShownInCurrentMap, linkedCollectibleIsLocked, isDiscovered, isNearby = GetPOIMapInfo(zoneIndex, poiIndex)
+		local name = GetPOIInfo(zoneIndex, poiIndex)
+		d(name .. " - " .. textureName) textures[textureName] = true
+	end
+end
+]]
+
+local function getInstanceDisplayTypeFromNearestPOI()
+	MapZoomOut() -- zoom out map once to get correct parent map for weird maps like Asylum Sanctorium -> Brass Fortress but GetParentZoneId is Clockwork
+	local zoneIndex = GetCurrentMapZoneIndex()
+	local playerX, playerZ = GetMapPlayerPosition("player")
+	local distance, poiIndex, poiType, zoneCompletionType, textureName
+	SetMapToPlayerLocation() -- zoom in again to not mess with map setting, TODO: save initial zone and restore it?
+
+	for poiIndexCandidate = 1, GetNumPOIs(zoneIndex) do
+		local normalizedX, normalizedZ, _, textureNameCandidate = GetPOIMapInfo(zoneIndex, poiIndexCandidate)
+		local poiTypeCandidate = GetPOIType(zoneIndex, poiIndexCandidate)
+		local zoneCompletionTypeCandidate = GetPOIZoneCompletionType(zoneIndex, poiIndexCandidate)
+		if ((normalizedX ~= 0 or normalizedZ ~= 0)
+			and (allowPOIType[poiTypeCandidate]
+				or allowZoneCompletionType[zoneCompletionTypeCandidate]
+				or allowPinTextureName[textureNameCandidate])) then
+			local dx = playerX - normalizedX
+			local dz = playerZ - normalizedZ
+			local distanceCandidate = dx * dx + dz * dz
+			if(distance == nil or distance > distanceCandidate) then
+				distance = distanceCandidate
+				poiIndex = poiIndexCandidate
+				poiType = poiTypeCandidate
+				zoneCompletionType = zoneCompletionTypeCandidate
+				textureName = textureNameCandidate
+			end
+		end
+	end
+
+	local l_instanceDisplayType = INSTANCE_DISPLAY_TYPE_NONE
+	if(zoneCompletionType == ZONE_COMPLETION_TYPE_DELVES) then l_instanceDisplayType = INSTANCE_DISPLAY_TYPE_DELVE
+	elseif (zoneCompletionType == ZONE_COMPLETION_TYPE_GROUP_DELVES) then l_instanceDisplayType = INSTANCE_DISPLAY_TYPE_GROUP_DELVE
+	elseif (poiType == POI_TYPE_PUBLIC_DUNGEON) then l_instanceDisplayType = INSTANCE_DISPLAY_TYPE_PUBLIC_DUNGEON
+	elseif (poiType == POI_TYPE_GROUP_DUNGEON) then l_instanceDisplayType = INSTANCE_DISPLAY_TYPE_DUNGEON
+	elseif (textureName == "/esoui/art/icons/poi/poi_raiddungeon_incomplete.dds"
+		or textureName == "/esoui/art/icons/poi/poi_raiddungeon_complete.dds") then l_instanceDisplayType = INSTANCE_DISPLAY_TYPE_RAID
+	elseif (textureName == "/esoui/art/icons/poi/poi_solotrial_incomplete.dds"
+		or textureName == "/esoui/art/icons/poi/poi_solotrial_complete.dds") then l_instanceDisplayType = INSTANCE_DISPLAY_TYPE_SOLO
+	end
+	return l_instanceDisplayType
+end
+
+local function setInstanceDisplayType()
+	--if(not newInstanceDisplayType) then d("loading instanceDisplayType from character") end
+	newInstanceDisplayType = newInstanceDisplayType or lib.zoneData.lastInstanceDisplayType or INSTANCE_DISPLAY_TYPE_NONE
+    local mapContentTypeIsDungeon = (GetMapContentType() == MAP_CONTENT_DUNGEON) or false
+
+
+	-- validate InstanceDisplayType: we might have ported to a player in a non overland zone
+	-- we assume there are two jumps for those ports, one to the overland, then into the actual zone/subzone
+	-- the second one happens inside the loadingscreen where we can't catch the EVENT_PREPARE_FOR_JUMP to get the correct instance INSTANCE_DISPLAY_TYPE
+	-- as the first one is always for overland (except when porting to the same instance and zone) it's set as INSTANCE_DISPLAY_TYPE_NONE
+	-- we can port to players in (Public) Dungeons, (Group) Delves, Trials and Houses
+	-- INSTANCE_DISPLAY_TYPE_NONE is also set when we entere a PvP Campaign
+	if newInstanceDisplayType == INSTANCE_DISPLAY_TYPE_NONE then
+		-- we speculate justic is only enabled in PvE Overland as MAP_CONTENT_NONE is sometimes also used in Delves
+		if (not (whereAreWe_IsJusticeEnabled() or whereAreWe_IsInPvP()) or mapContentTypeIsDungeon) then
+			--d("player port detected")
+			if whereAreWe_IsInHouse() then newInstanceDisplayType = INSTANCE_DISPLAY_TYPE_HOUSING
+			else newInstanceDisplayType = getInstanceDisplayTypeFromNearestPOI() end
+			--d("newInst " .. tostring(newInstanceDisplayType))
+		end
+
+	-- validate InstanceDisplayType: we might got ported out of our previous map/zone during logout so the saved zoneType has changed
+	-- we could be ported out from PvP, Dungeons, Trials and Houses we don't own and into overland
+	elseif (	(newInstanceDisplayType == INSTANCE_DISPLAY_TYPE_BATTLEGROUND   and not whereAreWe_IsInBattlegrounds())
+			or 	(newInstanceDisplayType == INSTANCE_DISPLAY_TYPE_DUNGEON        and not mapContentTypeIsDungeon)
+			or 	(newInstanceDisplayType == INSTANCE_DISPLAY_TYPE_RAID           and not mapContentTypeIsDungeon)
+			or 	(newInstanceDisplayType == INSTANCE_DISPLAY_TYPE_HOUSING        and not whereAreWe_IsInHouse())
+			-- we also could have entered a PvP campaign which seems to not use EVENT_PREPARE_FOR_JUMP from a non-overland region
+			) then
+		--d("logoff port detected")
+		newInstanceDisplayType = INSTANCE_DISPLAY_TYPE_NONE -- we view NONE as "Overland"
+	end
+	lib.zoneData.lastInstanceDisplayType = newInstanceDisplayType
+	instanceDisplayType = newInstanceDisplayType
+	newInstanceDisplayType = nil
+end
+
+-- set newInstanceDisplayType on EVENT_PREPARE_FOR_JUMP
+local function onPrepareForJump(eventCode, zoneName, zoneDescription, loadingTexture, instanceDisplayType)
+	--d("OnPrepareForJump " .. tostring(instanceDisplayType))
+	newInstanceDisplayType = instanceDisplayType
+	--newInstanceDisplayType = 0 d("pretend player port") -- pretend port to player situation
+end
+
+-- set newInstanceDisplayType when entering PvP on EVENT_CAMPAIGN_STATE_INITIALIZED
+-- EVENT_PREPARE_FOR_JUMP doesn't fire for it, would normally be overland when initial port
+local function onCampaignStateInitialized(eventCode, campaignId)
+	--d("OnCampaignStateInitialized " .. tostring(campaignId))
+	newInstanceDisplayType = INSTANCE_DISPLAY_TYPE_NONE
+end
+
+-- set instanceDisplayType and zoneType only after jump finished
+-- if jump failed we don't need to do anything as we stayed in the same zone, newInstanceDisplayType will be discarded next port
+local function onPlayerActivated(eventCode, initial)
+	setInstanceDisplayType()
+end
+
+
+-- Determine current zone's "where are we" information
+function lib:GetCurrentZoneWhereAreWe()
+    local retTab = {}
+    local isOverland = true
+    -- Add the fixed whereAreWe info
+	for libZoneFixedWhereAreWeID, checkFuncFixed in pairs(libZoneWhereAreWeToCheckFunc) do
+        local checkFuncResult = checkFuncFixed()
+        retTab[libZoneFixedWhereAreWeID] = checkFuncResult
+        if not isOverland and checkFuncResult == true then
+            isOverland = false
+        end
+    end
+    -- fallback = "Overland" if no other type was detected
+	retTab[LIBZONE_WHEREAREWE_OVERLAND] = isOverland
+	return retTab
+end
+
+
+
 ------------------------------------------------------------------------
 -- 	Addon/Librray load functions
 ------------------------------------------------------------------------
@@ -972,7 +1262,7 @@ local function OnLibraryLoaded(event, name)
     --Only load lib if ingame
     if name:find("^ZO_") then return end
     if name  == libraryName then
-        EVENT_MANAGER:UnregisterForEvent(libraryName, EVENT_ADD_ON_LOADED)
+        EM:UnregisterForEvent(libraryName, EVENT_ADD_ON_LOADED)
 
         --Get the maximum possible zoneIndex and zoneId
         lib.maxZoneIndices, lib.maxZoneIds = getMaxZoneIndicesAndIds()
@@ -980,7 +1270,7 @@ local function OnLibraryLoaded(event, name)
         --Load SavedVariables
         librarySavedVariables()
 
-        --EVENT_MANAGER:RegisterForEvent(lib.name, EVENT_ZONE_CHANGED, OnZoneChanged)
+        --EM:RegisterForEvent(lib.name, EVENT_ZONE_CHANGED, OnZoneChanged)
         --Did the API version change since last zoneID check? Then rebuild the zoneIDs now!
         local currentAPIVersion = lib.currentAPIVersion
         lib.currentClientLanguage = lib.currentClientLanguage or GetCVar("language.2")
@@ -995,6 +1285,11 @@ local function OnLibraryLoaded(event, name)
         --Do we have already datamined and localized zoneData given for other (non-client) languages? -> See file LibZone_Data.lua
         checkOtherLanguagesZoneDataAndTransferFromSavedVariables()
 
+	    EM:RegisterForEvent(libraryName, EVENT_PLAYER_ACTIVATED,            onPlayerActivated)          -- for handling instanceDisplayType
+        EM:RegisterForEvent(libraryName, EVENT_PREPARE_FOR_JUMP,            onPrepareForJump)           -- for handling instanceDisplayType
+	    EM:RegisterForEvent(libraryName, EVENT_CAMPAIGN_STATE_INITIALIZED,  onCampaignStateInitialized) -- for handling instanceDisplayType
+
+
         --Optional: Build the libSlashCommander autocomplete stuff, if LibSlashCommander is present and activated
         -->See file LibZone_AutoCompletion.lua
         lib:buildLSCZoneSearchAutoComplete()
@@ -1002,5 +1297,5 @@ local function OnLibraryLoaded(event, name)
 end
 
 --Load the addon now
-EVENT_MANAGER:UnregisterForEvent(libraryName, EVENT_ADD_ON_LOADED)
-EVENT_MANAGER:RegisterForEvent(libraryName, EVENT_ADD_ON_LOADED, OnLibraryLoaded)
+EM:UnregisterForEvent(libraryName, EVENT_ADD_ON_LOADED)
+EM:RegisterForEvent(libraryName, EVENT_ADD_ON_LOADED, OnLibraryLoaded)
