@@ -243,7 +243,7 @@ end
 -->			['poiZoneIndex'] = number,
 -->		},
 -->}
-local function getMapInfo(zoneId)
+local function getPinInfo(zoneId)
 	local mapInfo
 	--Get poiIndices for zoneId
 	local pinInfo = lib.poiRefrenceTable[zoneId]
@@ -376,10 +376,10 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
                     end
                 end
 		-- Get mapInfo.
-		local mapInfo = getMapInfo(zoneId)
+		local pinInfo = getPinInfo(zoneId)
 		-- If mapInfo then add it to zone data.
-		if mapInfo then
-			zoneDataForId.mapInfo = mapInfo
+		if pinInfo then
+			zoneDataForId.pinInfo = pinInfo
 		end
             end
         end
