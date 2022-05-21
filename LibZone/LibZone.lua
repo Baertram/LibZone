@@ -1167,8 +1167,8 @@ local function getInstanceDisplayTypeFromNearestPOI()
 	local l_instanceDisplayType = INSTANCE_DISPLAY_TYPE_NONE
 	if(zoneCompletionType == ZONE_COMPLETION_TYPE_DELVES) then l_instanceDisplayType = INSTANCE_DISPLAY_TYPE_DELVE
 	elseif (zoneCompletionType == ZONE_COMPLETION_TYPE_GROUP_DELVES) then l_instanceDisplayType = INSTANCE_DISPLAY_TYPE_GROUP_DELVE
-	elseif (poiType == POI_TYPE_PUBLIC_DUNGEON) then l_instanceDisplayType = INSTANCE_DISPLAY_TYPE_PUBLIC_DUNGEON
-	elseif (poiType == POI_TYPE_GROUP_DUNGEON) then l_instanceDisplayType = INSTANCE_DISPLAY_TYPE_DUNGEON
+	elseif poiType == POI_TYPE_PUBLIC_DUNGEON then l_instanceDisplayType = INSTANCE_DISPLAY_TYPE_PUBLIC_DUNGEON
+	elseif poiType == POI_TYPE_GROUP_DUNGEON then l_instanceDisplayType = INSTANCE_DISPLAY_TYPE_DUNGEON
 	elseif (textureName == "/esoui/art/icons/poi/poi_raiddungeon_incomplete.dds"
 		or textureName == "/esoui/art/icons/poi/poi_raiddungeon_complete.dds") then l_instanceDisplayType = INSTANCE_DISPLAY_TYPE_RAID
 	elseif (textureName == "/esoui/art/icons/poi/poi_solotrial_incomplete.dds"
