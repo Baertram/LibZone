@@ -218,6 +218,9 @@ setmetatable(preloadedZoneNames["jp"], {__index = referenceZoneNamesEN})
 --Custom langauges
 setmetatable(preloadedZoneNames["pl"], {__index = referenceZoneNamesEN})
 
+--Provide this translated data to the global library variable
+lib.preloadedZoneNames = preloadedZoneNames
+
 
 --Entries in this table "zoneIdsOfDifferentAPIVersion" will be removed from all zoneData tables below if the current
 --games's APIversion is below the key of the sub-table below.
@@ -276,10 +279,6 @@ end
 removeNonLiveAPIVersionEntriesFromLibZoneData()
 
 
---Provide this translated data to the global library variable
-lib.preloadedZoneNames = preloadedZoneNames
-
-
 
 --Localized "Wayshrine" string used to exclude wayshrine map pins.
 lib.wayshrineString = GetString(SI_DEATH_PROMPT_WAYSHRINE)
@@ -289,50 +288,63 @@ lib.wayshrineString = GetString(SI_DEATH_PROMPT_WAYSHRINE)
 --		["poiIndex"] = number,
 --		["poiZoneIndex"] = number,
 --},
-lib.poiRefrenceTable = {
-			-- zoneName -- poiName
-	[469] = { -- Tomb of Apostates -- Tomb of the Apostates
-		["poiIndex"] = 35,
-		["poiZoneIndex"] = 11,
+lib.poiReferenceTable = {
+			  				-- zoneName -- poiName
+	[469] = { 				-- Tomb of Apostates -- Tomb of the Apostates
+		["poiIndex"] = 		35,
+		["poiZoneIndex"] = 	11,
 	},
-	[913] = { -- The Mage's Staff -- Spellscar
-		["poiIndex"] = 9,
-		["poiZoneIndex"] = 500,
+	[913] = { 				-- The Mage's Staff -- Spellscar
+		["poiIndex"] = 		9,
+		["poiZoneIndex"] = 	500,
 	},
-	[910] = { -- Elinhir Sewerworks -- Elinhir -- Closest pin to use since Elinhir is not a zone.
-		["poiIndex"] = 8,
-		["poiZoneIndex"] = 500,
+	[910] = { 				-- Elinhir Sewerworks -- Elinhir -- Closest pin to use since Elinhir is not a zone.
+		["poiIndex"] = 		8,
+		["poiZoneIndex"] = 	500,
 	},
-	[677] = { -- Maelstrom Arena -- Arena: Maelstrom
-		["poiIndex"] = 55,
-		["poiZoneIndex"] = 379,
+	[677] = { 				-- Maelstrom Arena -- Arena: Maelstrom
+		["poiIndex"] = 		55,
+		["poiZoneIndex"] = 	379,
 	},
-			-- Parent map is an internal zone, use parent's parent
-	[915] = { -- Skyreach Temple. Located inside Loth'Na Caverns. This will point to Loth'Na Caverns to show where it is.
-		["poiIndex"] = 18,
-		["poiZoneIndex"] = 500,
+
+	-- Parent map is an internal zone, use parent's parent
+	[915] = { 				-- Skyreach Temple. Located inside Loth'Na Caverns. This will point to Loth'Na Caverns to show where it is.
+		["poiIndex"] = 		18,
+		["poiZoneIndex"] = 	500,
 	},
-}
-		
-					
-local allianceZones = {
-    [ALLIANCE_ALDMERI_DOMINION] = 381,
-    [ALLIANCE_EBONHEART_PACT] = 41,
-    [ALLIANCE_DAGGERFALL_COVENANT] = 3,
 }
 
-lib.adjustedParentZoneIds = {
-	[199] = allianceZones[GetUnitAlliance("player")], -- The Harborage --> Player alliance home
-	[689] = 684, -- Nikolvara's Kennel --> Wrothgar
-	[678] = 584, -- Imperial City Prison --> Imperial City
-	[688] = 584, -- White-Gold Tower --> Imperial City
-	[1209] = 1208, -- Gloomreach --> Blackreach: Arkthzand Cavern
+--The harborage zoneIds for each alliance
+local allianceZone2TheHarborage = {
+    [ALLIANCE_ALDMERI_DOMINION] = 		381,
+    [ALLIANCE_DAGGERFALL_COVENANT] = 	3,
+    [ALLIANCE_EBONHEART_PACT] = 		41,
 }
--- used for current player zoneId
+
+--Adjusted parent zonIds for the geographical parentZone checks
+lib.adjustedParentZoneIds = {
+	[199] = 	allianceZone2TheHarborage[GetUnitAlliance("player")], -- The Harborage --> Player alliance home
+	[689] = 	684, -- Nikolvara's Kennel --> Wrothgar
+	[678] = 	584, -- Imperial City Prison --> Imperial City
+	[688] = 	584, -- White-Gold Tower --> Imperial City
+	[1209] = 	1208, -- Gloomreach --> Blackreach: Arkthzand Cavern
+}
+
+-- Parent zoneIds which expand over multiple real zone IDs (like Ragnthar, the "virtual" Dwarven region which is located
+-- at Malabal Tor, Eastmarch and Alik'r Desert the same time -> Allthough the region is said to be "outside of Nirn", once
+-- entered)
 lib.adjustedParentMultiZoneIds = {
 	[385] = { -- Ragnthar
-		[58] = true, -->> Malabal Tor
+		[58] = 	true, -->> Malabal Tor
 		[101] = true, -->> Eastmarch
 		[104] = true, -->> Alik'r Desert
 	}
 }
+
+-- Adjustments to zones without pins on parentZone
+lib.adjustedParentPOIDataTable = {
+	1027,	-- Artaeum. Normally is Summerset.
+	1282,	-- Fargrave. Normally is Fargrave City District.
+	1283, 	-- The Shambles. Normally is Fargrave City District.
+}
+
