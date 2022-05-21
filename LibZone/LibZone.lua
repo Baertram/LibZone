@@ -933,9 +933,9 @@ end
 -->return: number: parentMapId
 function lib:GetGeogrphicalParentMapId(mapId)
 	local zoneIndex, = select(4, GetMapInfoById(mapId))
-	local parentZoneId = lib:GetZoneGeogrphicalParentZoneId(GetZoneId(zoneIndex))
-	return GetMapIdByZoneId(parentZoneId)
+	return lib:GetZoneGeogrphicalParentMapId(GetZoneId(zoneIndex))
 end
+
 
 ------------------------------------------------------------------------
 -- 	Addon/Librray load functions
