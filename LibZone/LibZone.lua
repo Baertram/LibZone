@@ -155,6 +155,7 @@ local function buildPoiDataTable()
 	-- The initial entries are to add parentZoneId adjustments to zones without pins on parentZone.
 	poiDataTable = {
 		[GetZoneNameById(1027):lower()] = {[1027] = false},-- Artaeum. Normally is Summerset.
+		[GetZoneNameById(1282):lower()] = {[1283] = false},-- Fargrave. Normally is Fargrave City District.
 		[GetZoneNameById(1283):lower()] = {[1283] = false},-- The Shambles. Normally is Fargrave City District.
 	}
 	
