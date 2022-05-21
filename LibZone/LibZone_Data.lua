@@ -313,9 +313,26 @@ lib.poiRefrenceTable = {
 		["poiZoneIndex"] = 500,
 	},
 }
+		
+					
+local allianceZones = {
+    [ALLIANCE_ALDMERI_DOMINION] = 381,
+    [ALLIANCE_EBONHEART_PACT] = 41,
+    [ALLIANCE_DAGGERFALL_COVENANT] = 3,
+}
 
 lib.adjustedParentZoneIds = {
+	[199] = allianceZones[GetUnitAlliance("player")], -- The Harborage --> Player alliance home
+	[689] = 684, -- Nikolvara's Kennel --> Wrothgar
 	[678] = 584, -- Imperial City Prison --> Imperial City
 	[688] = 584, -- White-Gold Tower --> Imperial City
 	[1209] = 1208, -- Gloomreach --> Blackreach: Arkthzand Cavern
+}
+-- used for current player zoneId
+lib.adjustedParentMultiZoneIds = {
+	[385] = { -- Ragnthar
+		[58] = , -- Malabal Tor
+		[101] = , -- Eastmarch
+		[104] = , -- Alik'r Desert
+	}
 }
