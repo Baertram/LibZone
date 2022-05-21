@@ -921,7 +921,7 @@ function lib:GetZonGeographicalParentZoneId(zoneId)
 	if zoneInfo then
 		-- This zone exists in multiple zones, if player is in parent zone then use it or use first entry.
 		local currentZoneId = GetUnitWorldPosition("player")
-		parentZoneId = zoneInfo[currentZoneId] or select(2, next(zoneInfo))
+		parentZoneId = zoneInfo[currentZoneId] or next(zoneInfo)
 	end
 	
 	if not parentZoneId then
