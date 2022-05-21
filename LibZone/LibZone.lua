@@ -915,7 +915,7 @@ end
 --end
 
 -->return: number: parentZoneId
-function lib:GetZoneGeogrphicalParentZoneId(zoneId)
+function lib:GetZonGeographicalParentZoneId(zoneId)
 	local parentZoneId = lib.adjustedParentZoneIds[zoneId]
 	if not parentZoneId then
 		parentZoneId = lib:GetZoneMapPinInfo(zoneId)
@@ -925,15 +925,15 @@ function lib:GetZoneGeogrphicalParentZoneId(zoneId)
 end
 
 -->return: number: parentMapId
-function lib:GetZoneGeogrphicalParentMapId(zoneId)
-	local parentZoneId = lib:GetZoneGeogrphicalParentZoneId(zoneId)
+function lib:GetZoneGeographicalParentMapId(zoneId)
+	local parentZoneId = lib:GetZoneGeographicalParentZoneId(zoneId)
 	return GetMapIdByZoneId(parentZoneId)
 end
 
 -->return: number: parentMapId
-function lib:GetGeogrphicalParentMapId(mapId)
+function lib:GetGeographicalParentMapId(mapId)
 	local zoneIndex, = select(4, GetMapInfoById(mapId))
-	return lib:GetZoneGeogrphicalParentMapId(GetZoneId(zoneIndex))
+	return lib:GetZoneGeographicalParentMapId(GetZoneId(zoneIndex))
 end
 
 
