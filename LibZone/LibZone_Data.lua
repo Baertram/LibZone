@@ -331,8 +331,8 @@ lib.adjustedParentZoneIds = {
 -- used for current player zoneId
 lib.adjustedParentMultiZoneIds = {
 	[385] = { -- Ragnthar
-		[58] = , -- Malabal Tor
-		[101] = , -- Eastmarch
-		[104] = , -- Alik'r Desert
+		[58] = true, -->> Malabal Tor
+		[101] = true, -->> Eastmarch
+		[104] = true, -->> Alik'r Desert
 	}
 }
