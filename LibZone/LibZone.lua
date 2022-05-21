@@ -919,6 +919,7 @@ function lib:GetZoneGeographicalParentZoneId(zoneId)
 	if zoneId == nil or type(zoneId) ~= 'number' then return end
 	local zoneInfo = lib.adjustedParentMultiZoneIds[zoneId]
 	
+	local parentZoneId
 	if zoneInfo then
 		-- This zone exists in multiple zones, if player is in parent zone then use it or use first entry.
 		local currentZoneId = GetUnitWorldPosition("player")
@@ -926,7 +927,7 @@ function lib:GetZoneGeographicalParentZoneId(zoneId)
 	end
 	
 	if not parentZoneId then
-		parentZoneId = lib:GetZoneMapPinInfo(zoneId)
+		parentZoneId = lib.adjustedParentZoneIds[zoneId] or lib:GetZoneMapPinInfo(zoneId)
 	end
 	
 	return parentZoneId
@@ -945,7 +946,6 @@ function lib:GetGeographicalParentMapId(mapId)
 	local zoneIndex = select(4, GetMapInfoById(mapId))
 	return lib:GetZoneGeographicalParentMapId(GetZoneId(zoneIndex))
 end
-
 
 ------------------------------------------------------------------------
 -- 	Addon/Librray load functions
