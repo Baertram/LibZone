@@ -915,7 +915,8 @@ end
 --end
 
 -->return: number: parentZoneId
-function lib:GetZonGeographicalParentZoneId(zoneId)
+function lib:GetZoneGeographicalParentZoneId(zoneId)
+	if zoneId == nil or type(zoneId) ~= 'number' then return end
 	local zoneInfo = lib.adjustedParentMultiZoneIds[zoneId]
 	
 	if zoneInfo then
@@ -933,12 +934,14 @@ end
 
 -->return: number: parentMapId
 function lib:GetZoneGeographicalParentMapId(zoneId)
+	if zoneId == nil or type(zoneId) ~= 'number' then return end
 	local parentZoneId = lib:GetZoneGeographicalParentZoneId(zoneId)
 	return GetMapIdByZoneId(parentZoneId)
 end
 
 -->return: number: parentMapId
 function lib:GetGeographicalParentMapId(mapId)
+	if mapId == nil or type(mapId) ~= 'number' then return end
 	local zoneIndex = select(4, GetMapInfoById(mapId))
 	return lib:GetZoneGeographicalParentMapId(GetZoneId(zoneIndex))
 end
