@@ -118,6 +118,24 @@ local function checkOtherLanguagesZoneDataAndTransferFromSavedVariables()
     end
 end
 
+--Build the data table for poi indices to be added to subzone data.
+-- Creates table:
+-- poiDataTable = {
+--   [string: poi or zone name] = {
+--		[number] = {
+--				["poiIndex"] = number,
+--				["poiZoneIndex"] = number, zone index of zone the poi is on.
+--			}
+--    },
+--}
+local function resetPoiData()
+	-- The initial entries are to add parentZoneId adjustments to zones without pins on parent.
+	poiDataTable = {
+		[GetZoneNameById(1027):lower()] = {[1027] = false},-- Artaeum. Normally is Summerset.
+		[GetZoneNameById(1282):lower()] = {[1283] = false},-- Fargrave. Normally is Fargrave City District.
+		[GetZoneNameById(1283):lower()] = {[1283] = false},-- The Shambles. Normally is Fargrave City District.
+	}
+end
 -- Adds poiName to poiDataTable. Data use with poiRefrenceTable.
 -- poiDataTable = {
 --		[poiZoneIndex] = {
@@ -141,24 +159,8 @@ local function mapMapInfoByPoiName(poiName, zoneId, entry)
 	poiDataTable[poiName] = mapInfo
 end
 
---Build the data table for poi indices to be added to subzone data.
--- Creates table:
--- poiDataTable = {
---   [string: poi or zone name] = {
---		[number] = {
---				["poiIndex"] = number,
---				["poiZoneIndex"] = number, zone index of zone the poi is on.
---			}
---    },
---}
 local function buildPoiDataTable()
-	-- The initial entries are to add parentZoneId adjustments to zones without pins on parentZone.
-	poiDataTable = {
-		[GetZoneNameById(1027):lower()] = {[1027] = false},-- Artaeum. Normally is Summerset.
-		[GetZoneNameById(1282):lower()] = {[1283] = false},-- Fargrave. Normally is Fargrave City District.
-		[GetZoneNameById(1283):lower()] = {[1283] = false},-- The Shambles. Normally is Fargrave City District.
-	}
-	
+	resetPoiData()
     local maxZoneIndices = lib.maxZoneIndices
     for zoneIndexOfZoneId=0, maxZoneIndices do
 		local zoneId = GetZoneId(zoneIndexOfZoneId)
@@ -170,6 +172,8 @@ local function buildPoiDataTable()
 				local entry = {
 					poiIndex = poiIndex,
 					poiZoneIndex = zoneIndexOfZoneId, -- the parent zoneIndex
+					poiName = poiName .. ' --> debug only', -- poiName
+					parentZoneName = GetZoneNameById(zoneId) .. ' --> debug only',
 				}
 				poiName = ZO_CachedStrFormat(SI_ZONE_NAME, poiName):lower()
 				if poiDataTable[poiName] and poiName:find(' i$') ~= nil then
@@ -236,29 +240,29 @@ local function getPoiName(poiZoneIndex, poiIndex)
 	end
 end
 
---getMapInfo. mapInfo is 1 or more sub-tables of poi indices with parentZoneId as sub-table index.
--->return table: mapInfo = {
+--getMapInfo. pinInfo is 1 or more sub-tables of poi indices with parentZoneId as sub-table index.
+-->return table: pinInfo = {
 -->		[number: parentZoneId] = {
 -->			['poiIndex'] = number,
 -->			['poiZoneIndex'] = number,
 -->		},
 -->}
 local function getPinInfo(zoneId)
-	local mapInfo
+	local pinInfo
 	--Get poiIndices for zoneId
 	local pinInfo = lib.poiRefrenceTable[zoneId]
 	if pinInfo then
 		local poiName = getPoiName(pinInfo.poiZoneIndex, pinInfo.poiIndex)
 		if poiName then
-			--Get mapInfo using mapped poiName. Used with poiRefrenceTable.
-			mapInfo = poiDataTable[poiName]
+			--Get pinInfo using mapped poiName. Used with poiRefrenceTable.
+			pinInfo = poiDataTable[poiName]
 		end
 	end
-	if not mapInfo then
-		-- Get mapInfo using zoneName.
-		mapInfo = getMapInfoByName(GetZoneNameById(zoneId):lower())
+	if not pinInfo then
+		-- Get pinInfo using zoneName.
+		pinInfo = getMapInfoByName(GetZoneNameById(zoneId):lower())
 	end
-	return mapInfo
+	return pinInfo
 end
 
 ------------------------------------------------------------------------
@@ -375,12 +379,12 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
                         zoneDataForId.parentZone = zoneParentIdOfZoneId
                     end
                 end
-		-- Get mapInfo.
-		local pinInfo = getPinInfo(zoneId)
-		-- If mapInfo then add it to zone data.
-		if pinInfo then
-			zoneDataForId.pinInfo = pinInfo
-		end
+				-- Get pinInfo.
+				local pinInfo = getPinInfo(zoneId)
+				-- If pinInfo then add it to zone data.
+				if pinInfo then
+					zoneDataForId.pinInfo = pinInfo
+				end
             end
         end
     end
@@ -877,8 +881,7 @@ function lib:GetZoneMapPinInfo(zoneId, parentZoneId)
 	end
 	return parentZoneId, poiInfo
 end
-
---Example: -->can be removed or reduced<--
+--Example: >can be removed or reduced<
 --local preferedParentZoneIds = {
 --	[678] = 181, -- Imperial City Prison --> Cyrodiil
 --	[688] = 181, -- White-Gold Tower --> Cyrodiil
@@ -910,6 +913,16 @@ end
 --	self.mapId = GetMapIdByZoneId(self.parentZoneId)
 --	self:UpdateIcon(icon)
 --end
+
+-->return: number: parentZoneId
+function lib:GetZoneGeogrphicalParentZoneId(zoneId)
+	local parentZoneId = lib.adjustedParentZoneIds[zoneId]
+	if not parentZoneId then
+		parentZoneId = lib:GetZoneMapPinInfo(zoneId)
+	end
+	
+	return parentZoneId
+end
 
 ------------------------------------------------------------------------
 -- 	Addon/Librray load functions
