@@ -121,13 +121,7 @@ local function checkOtherLanguagesZoneDataAndTransferFromSavedVariables()
     end
 end
 
---Build the data table for poi indices to be added to subzone data.
--- Creates table:
--- poiDataTable = {
---   [string: poi or zone name] = {
---		[number] = number: poiIndex or false,
---    },
---}
+--Initialize poiDataTable
 local function resetPoiData()
     -- The initial entries are to add parentZoneId adjustments to zones without pins on parent.
     for zoneIdToAdjust, parentZoneId in ipairs(lib.adjustedParentForPOIDataTable) do
@@ -159,6 +153,13 @@ local function mapPoiIndexByPoiName(poiName, zoneId, poiIndex)
 	poiDataTable[poiName] = mapInfo
 end
 
+--Build the data table for poi indices to be added to subzone data.
+-- Creates table:
+-- poiDataTable = {
+--   [string: poi or zone name] = {
+--		[number] = number: poiIndex or false,
+--    },
+--}
 local function buildPoiDataTable()
 	resetPoiData()
     local maxZoneIndices = lib.maxZoneIndices
