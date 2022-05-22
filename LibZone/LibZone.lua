@@ -130,12 +130,12 @@ end
 --}
 local function resetPoiData()
     -- The initial entries are to add parentZoneId adjustments to zones without pins on parent.
-    for _, zoneIdToAdjust in ipairs(lib.adjustedParentPOIDataTable) do
-        poiDataTable[GetZoneNameById(zoneIdToAdjust):lower()] = {[zoneIdToAdjust] = false}
+    for zoneIdToAdjust, parentZoneId in ipairs(lib.adjustedParentForPOIDataTable) do
+        poiDataTable[GetZoneNameById(zoneIdToAdjust):lower()] = {[parentZoneId] = false}
     end
 end
 
--- Adds poiName to poiDataTable. Data use with poiReferenceTable.
+-- Adds poiName to poiDataTable. Data used with poiReferenceTable.
 -- poiDataTable = {
 --		[poiZoneIndex] = {
 --			[poiIndex] = string: poi name,
