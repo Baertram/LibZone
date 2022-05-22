@@ -36,7 +36,7 @@ local clientLang = lib.currentClientLanguage
 local isAddonDevOfLibZone = (GetDisplayName() == '@Baertram' and true) or false
 
 local pubDungeons
-local poiDataTable
+local poiDataTable = {}
 local poiReferenceTable
 local wayshrineString
 local adjustedParentZoneIds
