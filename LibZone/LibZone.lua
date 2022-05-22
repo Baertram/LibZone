@@ -61,6 +61,20 @@ local function getMaxZoneIndicesAndIds()
     return numZoneIndices, maxZoneIds
 end
 
+--Return info string for POI Info 
+local function getPoiString(pinInfo)
+	local poiString = '>POI Info:'
+	for parentZoneId, poiIndex in pairs(pinInfo) do
+		poiString = poiString .. string.format('\nparentZoneId = %s, Parent Name = %s', parentZoneId, GetZoneNameById(parentZoneId))
+		
+		if poiIndex then
+			local poiName = GetPOIInfo(GetZoneIndex(parentZoneId), poiIndex)
+			poiString = poiString .. string.format(', poiIndex = %s, POI Name = %s', poiIndex, poiName)
+		end
+	end
+	return poiString
+end
+
 --Load the SavedVariables and connect the tables of the library with the SavedVariable tables.
 --The following table will be stored and read to/from the SavedVariables:
 --LibZone.zoneData:             LibZone_SV_Data             -> zoneIds and parentZoneIds
@@ -481,9 +495,11 @@ function lib:ShowZoneData(zoneId, subZoneId, language)
         d("[" .. libraryName .. "]ShowZoneData for zoneId \"".. tostring(zoneId) .. "\", subZoneId: \"".. tostring(subZoneId) .. "\", language: \"" .. tostring(language) .. "\"")
         d(">Zone name: " .. tostring(zoneIdData.name))
         if zoneIdData.zoneIndex ~= nil then d(">Zone index: " .. tostring(zoneIdData.zoneIndex)) end
+        if zoneIdData.pinInfo ~= nil then d(getPoiString(zoneIdData.pinInfo)) end
         if subZoneIdData ~= nil then
             d(">>SubZone name: " .. tostring(subZoneIdData.name))
             if subZoneIdData.zoneIndex ~= nil then d(">SubZone index: " .. tostring(subZoneIdData.zoneIndex)) end
+		if subZoneIdData.pinInfo ~= nil then d(getPoiString(subZoneIdData.pinInfo)) end
         end
     else
         d("[\'" .. libraryName .. "\']ShowZoneData for zoneId \"".. tostring(zoneId) .. "\", subZoneId: \"".. tostring(subZoneId) .. "\"\nNo zone data was found for language \"" .. tostring(language) .. "\"!")
