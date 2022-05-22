@@ -316,9 +316,9 @@ lib.poiReferenceTable = {
 
 --The harborage zoneIds for each alliance
 local allianceZone2TheHarborage = {
-    [ALLIANCE_ALDMERI_DOMINION] = 		381,
+    [ALLIANCE_ALDMERI_DOMINION] =	381,
     [ALLIANCE_DAGGERFALL_COVENANT] = 	3,
-    [ALLIANCE_EBONHEART_PACT] = 		41,
+	[ALLIANCE_EBONHEART_PACT] =	41,
 }
 
 --Adjusted parent zonIds for the geographical parentZone checks
@@ -342,9 +342,10 @@ lib.adjustedParentMultiZoneIds = {
 }
 
 -- Adjustments to zones without pins on parentZone
-lib.adjustedParentPOIDataTable = {
-	1027,	-- Artaeum. Normally is Summerset.
-	1282,	-- Fargrave. Normally is Fargrave City District.
-	1283, 	-- The Shambles. Normally is Fargrave City District.
+-- [zoneId] = parentZoneId to use
+lib.adjustedParentForPOIDataTable = {
+	[1027] = 1027, -- Artaeum. Normally is Summerset.
+	[1282] = 1283, -- Fargrave. Normally is Fargrave City District.
+	[1283] = 1283, -- The Shambles. Normally is Fargrave City District.
 }
 
