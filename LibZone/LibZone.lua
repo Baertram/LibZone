@@ -831,6 +831,7 @@ end
 --Display a list of zones not included in geoDataReferenceTable.
 --Then, for each zone, locate it's parent/s. Use each parentZoneId with InspectZonePoiInfo and
 --compare the zone's name with pin names listed. Add relevant indices to geoDataReferenceTable.
+--Some pin names do not match the zone name they are associated with. Example: zoneName = The Mage's Staff, pinName = Spellscar
 --If the zone is inside another subzone that has a pin on the parent, use the subzone's pinIndex.
 --If there is no relevant pin, set pinIndex to 0.
 function lib:VerifyGeoData()
