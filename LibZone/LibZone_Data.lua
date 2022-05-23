@@ -283,37 +283,6 @@ removeNonLiveAPIVersionEntriesFromLibZoneData()
 --Localized "Wayshrine" string used to exclude wayshrine map pins.
 lib.wayshrineString = GetString(SI_DEATH_PROMPT_WAYSHRINE)
 
---This table is used to get the poiName from poi indices in order to match with the poiData.
---[zoneId]{ -- reason
---		["poiIndex"] = number,
---		["poiZoneIndex"] = number,
---},
-lib.poiReferenceTable = {
-			  				-- zoneName -- poiName
-	[469] = { 				-- Tomb of Apostates -- Tomb of the Apostates
-		["poiIndex"] = 		35,
-		["poiZoneIndex"] = 	11,
-	},
-	[913] = { 				-- The Mage's Staff -- Spellscar
-		["poiIndex"] = 		9,
-		["poiZoneIndex"] = 	500,
-	},
-	[910] = { 				-- Elinhir Sewerworks -- Elinhir -- Closest pin to use since Elinhir is not a zone.
-		["poiIndex"] = 		8,
-		["poiZoneIndex"] = 	500,
-	},
-	[677] = { 				-- Maelstrom Arena -- Arena: Maelstrom
-		["poiIndex"] = 		55,
-		["poiZoneIndex"] = 	379,
-	},
-
-	-- Parent map is an internal zone, use parent's parent
-	[915] = { 				-- Skyreach Temple. Located inside Loth'Na Caverns. This will point to Loth'Na Caverns to show where it is.
-		["poiIndex"] = 		18,
-		["poiZoneIndex"] = 	500,
-	},
-}
-
 --The harborage zoneIds for each alliance
 local allianceZone2TheHarborage = {
     [ALLIANCE_ALDMERI_DOMINION] =	381,
@@ -340,12 +309,3 @@ lib.adjustedParentMultiZoneIds = {
 		[104] = true, -->> Alik'r Desert
 	}
 }
-
--- Adjustments to zones without pins on parentZone
--- [zoneId] = parentZoneId to use
-lib.adjustedParentForPOIDataTable = {
-	[1027] = 1027, -- Artaeum. Normally is Summerset.
-	[1282] = 1283, -- Fargrave. Normally is Fargrave City District.
-	[1283] = 1283, -- The Shambles. Normally is Fargrave City District.
-}
-
