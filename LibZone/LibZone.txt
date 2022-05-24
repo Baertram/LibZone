@@ -21,3 +21,4 @@ LibZone.lua
 
 ##LibZone preloaded zonedata and names
 LibZone_Data.lua
+LibZone_GeoData.lua

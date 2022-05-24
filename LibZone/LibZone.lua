@@ -35,12 +35,11 @@ local isAddonDevOfLibZone = (GetDisplayName() == '@Baertram' and true) or false
 
 local pubDungeons
 local poiDataTable
-local poiReferenceTable
 local wayshrineString
+local geoDataReferenceTable
 local adjustedParentZoneIds
 local adjustedParentMultiZoneIds
 
-local getMapInfoByName
 local getZoneData
 local getZoneName
 
@@ -62,13 +61,19 @@ local function getMaxZoneIndicesAndIds()
     return numZoneIndices, maxZoneIds
 end
 
+--parameter number: poiIndex
+-->returns bool
+local function isValidPin(poiIndex)
+	return (poiIndex ~= nil and poiIndex > 0) or false
+end
+
 --Load the SavedVariables and connect the tables of the library with the SavedVariable tables.
 --The following table will be stored and read to/from the SavedVariables:
 --LibZone.zoneData:             LibZone_SV_Data             -> zoneIds and parentZoneIds
 --LibZone.localizedZoneData:    LibZone_Localized_SV_Data   -> zoneNames, with different languages
 ---> This table only helds the "delta" between the scanned zoneIds + language and the preloaded data in file LibZone_Data.lua, table preloadedZoneNames
 local function librarySavedVariables()
-    local svVersion         = libZone.svVersion
+	local svVersion         = libZone.svVersion
     local svDataTableName   = libZone.svDataTableName
     local worldName         = lib.worldName
     local defaultZoneData = {}
@@ -122,143 +127,6 @@ local function checkOtherLanguagesZoneDataAndTransferFromSavedVariables()
     end
 end
 
---Build the data table for poi indices to be added to subzone data.
--- Creates table:
--- poiDataTable = {
---   [string: poi or zone name] = {
---		[number] = {
---				["poiIndex"] = number,
---				["poiZoneIndex"] = number, zone index of zone the poi is on.
---			}
---    },
---}
-local function resetPoiData()
-    -- The initial entries are to add parentZoneId adjustments to zones without pins on parent.
-    for _, zoneIdToAdjust in ipairs(lib.adjustedParentPOIDataTable) do
-        poiDataTable[GetZoneNameById(zoneIdToAdjust):lower()] = {[zoneIdToAdjust] = false}
-    end
-end
-
--- Adds poiName to poiDataTable. Data use with poiReferenceTable.
--- poiDataTable = {
---		[poiZoneIndex] = {
---			[poiIndex] = string: poi name,
---		}
--- }
-local function mapPoiNameByPoiIndices(poiZoneIndex, poiIndex, entry)
-	local mapInfo = poiDataTable[poiZoneIndex] or {}
-	mapInfo[poiIndex] = entry
-	poiDataTable[poiZoneIndex] = mapInfo
-end
-
--- Adds poi data to poiDataTable.
--- poiDataTable = {
---		[poiName] = {
---			[zoneId] = table: poi data,
---		}
--- }
-local function mapMapInfoByPoiName(poiName, zoneId, entry)
-	local mapInfo = poiDataTable[poiName] or {}
-	mapInfo[zoneId] = entry
-	poiDataTable[poiName] = mapInfo
-end
-
-local function buildPoiDataTable()
-	resetPoiData()
-    local maxZoneIndices = lib.maxZoneIndices
-    for zoneIndexOfZoneId=0, maxZoneIndices do
-		local zoneId = GetZoneId(zoneIndexOfZoneId)
-		local poiCount = GetNumPOIs(zoneIndexOfZoneId)
-        if poiCount and poiCount > 0 then
-            for poiIndex = 1, poiCount do
-                local poiName = GetPOIInfo(zoneIndexOfZoneId, poiIndex)
-                --Exclude wayshrines
-                if poiName and poiName ~= '' and not poiName:match(wayshrineString) then
-                    local entry = {
-                        poiIndex = poiIndex,
-                        poiZoneIndex = zoneIndexOfZoneId, -- the parent zoneIndex
-                        poiName = poiName .. ' --> debug only', -- poiName
-                        parentZoneName = GetZoneNameById(zoneId) .. ' --> debug only',
-                    }
-                    poiName = ZO_CachedStrFormat(SI_ZONE_NAME, poiName):lower()
-                    if poiDataTable[poiName] and poiName:find(' i$') ~= nil then
-                        -- we need to add an 'i' to darkshade caverns ii the other dungeons already have this for 2nd.
-                        poiName = poiName .. 'i'
-                    end
-                    mapMapInfoByPoiName(poiName, zoneId, entry)
-                    mapPoiNameByPoiIndices(zoneIndexOfZoneId, poiIndex, poiName)
-                end
-            end
-        end
-	end
-end
-
-local function getModifier(source, search)
-    if source:find(search, 1, true) ~= nil then
-        return #source:gsub('^(%S+ ).*', '%1')
-    end
-    return false
-end
-
---> returns number: (difference in string lengths) or nil
--- modifier is matching strings length minus 'firstWord " to compensate for 'trail: ', 'arena: ', 'dungeon: ', 'the ', etc.
-local function comparePoiNames(poiName, zoneName)
-    local modifier = getModifier(poiName, zoneName) or getModifier(zoneName, poiName)
-    if modifier then
-
-        if #poiName == #zoneName then
-            modifier = 0
-        end
-
-        return math.abs(#poiName - #zoneName) - modifier
-    end
-end
---> returns the table containing pin info that matches the zoneName.
-getMapInfoByName = function(zoneName)
-    for poiName, mapInfo in pairs(poiDataTable) do
-        if type(poiName) == 'string' then
-            local score = comparePoiNames(poiName, zoneName)
-
-            if score ~= nil and (score == 0) then
-                return mapInfo
-            end
-        end
-    end
-end
-
--->return string:nilable poiName
-local function getPoiName(poiZoneIndex, poiIndex)
-	local pinInfo = poiDataTable[poiZoneIndex]
-	if pinInfo then
-		return pinInfo[poiIndex]
-	end
-    return
-end
-
---getMapInfo. pinInfo is 1 or more sub-tables of poi indices with parentZoneId as sub-table index.
--->return table: pinInfo = {
--->		[number: parentZoneId] = {
--->			['poiIndex'] = number,
--->			['poiZoneIndex'] = number,
--->		},
--->}
-local function getPinInfo(zoneId)
-	--Get poiIndices for zoneId
-	local pinInfo = poiReferenceTable[zoneId]
-	if pinInfo then
-		local poiName = getPoiName(pinInfo.poiZoneIndex, pinInfo.poiIndex)
-		if poiName then
-			--Get pinInfo using mapped poiName. Used with poiReferenceTable.
-			pinInfo = poiDataTable[poiName]
-		end
-	end
-	if not pinInfo then
-		-- Get pinInfo using zoneName.
-		pinInfo = getMapInfoByName(GetZoneNameById(zoneId):lower())
-	end
-	return pinInfo
-end
-
 ------------------------------------------------------------------------
 -- 	Library functions
 ------------------------------------------------------------------------
@@ -299,9 +167,6 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
     reBuildNew = reBuildNew or false
     doReloadUI = doReloadUI or false
 
-    poiReferenceTable = lib.poiReferenceTable
-    wayshrineString = lib.wayshrineString
-
     --Client language
     local lang = self.currentClientLanguage
     if lang == nil then return false end
@@ -327,9 +192,6 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
     if preloadedZoneNamesTable == nil then
         languageIsMissingInTotal = true
     end
-
-	-- Create the table used to add poiInfo to zoneData
-	buildPoiDataTable()
 
     --d(">languageIsMissingInTotal: " ..tostring(languageIsMissingInTotal))
     --Loop over all zone Ids and get it's data + name
@@ -378,12 +240,6 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
                         zoneDataForId.parentZone = zoneParentIdOfZoneId
                     end
                 end
-				-- Get pinInfo.
-				local pinInfo = getPinInfo(zoneId)
-				-- If pinInfo then add it to zone data.
-				if pinInfo then
-					zoneDataForId.pinInfo = pinInfo
-				end
             end
         end
     end
@@ -480,6 +336,7 @@ function lib:GetZoneData(zoneId, subZoneId, language)
 end
 getZoneData = lib.GetZoneData
 
+
 --Show existing zone data to the chat now
 --Output zone informtaion to the chat, using the zoneId, subZoneId (connected to zoneId via parentZoneId) and the language (e.g. "en" or "fr")
 function lib:ShowZoneData(zoneId, subZoneId, language)
@@ -498,7 +355,7 @@ function lib:ShowZoneData(zoneId, subZoneId, language)
         d("[\'" .. libraryName .. "\']ShowZoneData for zoneId \"".. tostring(zoneId) .. "\", subZoneId: \"".. tostring(subZoneId) .. "\"\nNo zone data was found for language \"" .. tostring(language) .. "\"!")
     end
 end
-
+local showZoneData = lib.ShowZoneData
 
 --Get the localized zone name by help of a zoneId
 --zoneId: Number containing zoneId
@@ -857,34 +714,29 @@ function lib:GetMapNames(override)
     return mapId2Name
 end
 
-
---Get the zoneData of the zoneId and read it's mapInfo, and return the parentZoneId stored at the pin of the
--- ??? POI of the map
+--Get the zoneData of the zoneId and read it's pinInfo, and return the parentZoneId and, 
+--if exists, poiIndex of the map pin associated with the zoneId.
 --parameters number: zoneId, number:nilable parentZoneId
--->return: number:nilable parentZoneId, table:nilable pinInfo
--->pinInfo = {
--->		['poiIndex'] = ,
--->		['poiZoneIndex'] = ,
--->}
+-->return: number:nilable parentZoneId, number:nilable parentZoneIndex, table:nilable poiIndex
 --
---Example: >can be removed or reduced<
+--Example: >can be removed from lib or reduced<
 --local preferedParentZoneIds = {
 --	[678] = 181, -- Imperial City Prison --> Cyrodiil
 --	[688] = 181, -- White-Gold Tower --> Cyrodiil
 --	[1209] = 1208, -- Gloomreach --> Blackreach: Arkthzand Cavern
 --}
 --function Entry_Class:UpdateZoneInfo()
---	local preferedParentZoneId = preferedParentZoneIds[self.zoneId] or self.parentZoneId
---	local parentZoneId, pinInfo = LibZone:GetZoneMapPinInfo(self.zoneId, preferedParentZoneId)
 --	local icon = "/esoui/art/icons/poi/poi_wayshrine_complete.dds"
+--	local preferedParentZoneId = preferedParentZoneIds[self.zoneId] or self.parentZoneId
+--	local parentZoneId, parentZoneIndex, poiIndex, isValidPin = LibZone:GetZoneMapPinInfo(self.zoneId, preferedParentZoneId)
 
---	if parentZoneId ~= nil then
-		--update parentZoneId
+--	if parentZoneId then
 --		self.parentZoneId = parentZoneId
+--		self.parentZoneIndex = parentZoneIndex
 --	end
 
---	if pinInfo ~= nil then
---		local startDescription, finishedDescription = select(3, GetPOIInfo(pinInfo.poiZoneIndex, pinInfo.poiIndex))
+--	if isValidPin then
+--		local startDescription, finishedDescription = select(3, GetPOIInfo(parentZoneIndex, poiIndex))
 
 --		if HasCompletedFastTravelNodePOI(self.zoneIndex) then
 --			self.pinDesc = finishedDescription
@@ -892,8 +744,8 @@ end
 --			self.pinDesc = startDescription
 --		end
 
---		icon = select(4, GetPOIMapInfo(pinInfo.poiZoneIndex, pinInfo.poiIndex))
---		self.pinInfo = pinInfo -- {poiIndex = num, poiZoneIndex = num}
+--		icon = select(4, GetPOIMapInfo(parentZoneIndex, poiIndex))
+--		self.poiIndex = poiIndex
 --	end
 	--we want the parent map where the pin is located
 --	self.mapId = GetMapIdByZoneId(self.parentZoneId)
@@ -901,30 +753,25 @@ end
 --end
 function lib:GetZoneMapPinInfo(zoneId, parentZoneId)
 	if zoneId == nil or type(zoneId) ~= 'number' then return end
-	parentZoneId = parentZoneId or GetParentZoneId(zoneId)
-
-	local poiInfo
-	local zoneInfo = self.zoneData[zoneId]
-	if not zoneInfo then return end
-	local mapInfo = zoneInfo.mapInfo
-	if mapInfo then
-		-- Try to get pinInfo using parentZoneId
+	local geoData = geoDataReferenceTable[zoneId]
+	if geoData then
+		-- Try to get poiIndices using parentZoneId
 		if parentZoneId then
-			poiInfo = mapInfo[parentZoneId]
+			poiIndex = geoData[parentZoneId]
 		end
-		if not poiInfo then
+		if not poiIndex then
 			-- for zones where GetParentZoneId does not return a parentZoneId that matches where the zone's pin is.
-			-- These zones also only have 1 entry.
-			parentZoneId, poiInfo = next(mapInfo) --> where parentZoneId is where the zone's map pin exists on.
+			-- These zones also usually only have 1 entry.
+			parentZoneId, poiIndex = next(geoData) --> where parentZoneId is where the zone's map pin exists on.
 		end
+		return parentZoneId, GetZoneIndex(parentZoneId), poiIndex, isValidPin(poiIndex)
 	end
-	return parentZoneId, poiInfo
 end
 local getZoneMapPinInfo = lib.GetZoneMapPinInfo
 
 --Get the geographical parentZoneId of a zoneId. This will not use the games API function GetParenZoneId(zoneId) as this
---might return any other zoneId which is not the geographical parent zoneId. If you need to get the normal parent zoneId
---use the lib's API function lib:GetCurrentZoneIds()
+--might return any other zoneId which is not the geographical parent zoneId.
+--If you need to get the normal parent zoneId use GetParenZoneId(zoneId)
 -->return: number:nilable parentZoneId
 function lib:GetZoneGeographicalParentZoneId(zoneId)
 	if zoneId == nil or type(zoneId) ~= 'number' then return end
@@ -964,6 +811,39 @@ function lib:GetGeographicalParentMapId(mapId)
 	return getZoneGeographicalParentMapId(lib, GetZoneId(zoneIndex))
 end
 
+-- Display pins for the selected zone.
+--parameters number: zoneId
+function lib:InspectZonePoiInfo(zoneId)
+	if zoneId == nil or type(zoneId) ~= 'number' then return end
+	local zoneIndex = GetZoneIndex(zoneId)
+	local poiCount = GetNumPOIs(zoneIndex)
+	if poiCount and poiCount > 0 then
+		for poiIndex = 1, poiCount do
+			local poiName = GetPOIInfo(zoneIndex, poiIndex)
+			--Exclude wayshrines
+			if poiName and poiName ~= '' and not poiName:match(wayshrineString) then
+				d(string.format('-- poiIndex = %s, %s', poiIndex, poiName))
+			end
+		end
+	end
+end
+
+--Display a list of zones not included in geoDataReferenceTable.
+--Then, for each zone, locate it's parent/s. Use each parentZoneId with InspectZonePoiInfo and
+--compare the zone's name with pin names listed. Add relevant indices to geoDataReferenceTable.
+--Some pin names do not match the zone name they are associated with. Example: zoneName = The Mage's Staff, pinName = Spellscar
+--If the zone is inside another subzone that has a pin on the parent, use the subzone's pinIndex.
+--If there is no relevant pin, set pinIndex to 0.
+function lib:VerifyGeoData()
+    local maxZoneIndices = self.maxZoneIndices
+    for zoneIndexOfZoneId=0, maxZoneIndices do
+        local zoneId = GetZoneId(zoneIndexOfZoneId)
+		if zoneId and zoneId > 2 and not geoDataReferenceTable[zoneId] then
+			d(string.format('zoneId = %s, %s', zoneId, GetZoneNameById(zoneId)))
+		end
+	end
+end
+
 ------------------------------------------------------------------------
 -- 	Addon/Librray load functions
 ------------------------------------------------------------------------
@@ -995,6 +875,7 @@ local function OnLibraryLoaded(event, name)
         --Do we have already datamined and localized zoneData given for other (non-client) languages? -> See file LibZone_Data.lua
         checkOtherLanguagesZoneDataAndTransferFromSavedVariables()
 
+		geoDataReferenceTable = lib.geoDataReferenceTable
         --Optional: Build the libSlashCommander autocomplete stuff, if LibSlashCommander is present and activated
         -->See file LibZone_AutoCompletion.lua
         lib:buildLSCZoneSearchAutoComplete()
