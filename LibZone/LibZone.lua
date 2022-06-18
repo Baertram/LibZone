@@ -764,6 +764,7 @@ end
 function lib:GetZoneMapPinInfo(zoneId, parentZoneId)
 	if zoneId == nil or type(zoneId) ~= 'number' then return end
 	local poiIndex
+    geoDataReferenceTable = geoDataReferenceTable or lib.geoDataReferenceTable
     local geoData = geoDataReferenceTable[zoneId]
 	if geoData then
 		-- Try to get poiIndices using parentZoneId
