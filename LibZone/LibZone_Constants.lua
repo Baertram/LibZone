@@ -60,6 +60,10 @@ local supportedLanguages = {
 
 --Translations for this library
 local translations = {
+    --Localized "Wayshrine" string used to exclude wayshrine map pins.
+    wayshrineString = GetString(SI_DEATH_PROMPT_WAYSHRINE),
+
+    --------------------------------------------------------------------------------------------------------------------
     ["de"] = {
         ["de"]                              = "Deutsch",
         ["en"]                              = "Englisch",
@@ -189,6 +193,7 @@ lib.maxMapIds = 3500 -- Currently there are around 2100 -> API101031 Waking Flam
 lib.currentClientLanguage = clientLang
 lib.supportedLanguages = supportedLanguages
 lib.translations = translations
+
 
 --Blacklisted zoneIds which will not be added to the scanned (and thus not added to the auto completion) lists
 local blacklistedZoneIdsForAutoCompletion = {

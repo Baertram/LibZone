@@ -28,6 +28,42 @@
 LibZone = LibZone or {}
 local lib = LibZone
 
+
+------------------------------------------------------------------------------------------------------------------------
+--v- Geographical parent zone Info
+--> By IsJustaGhost, 2022-05. Used by himself and Thal-J (https://gitter.im/esoui/esoui)
+------------------------------------------------------------------------------------------------------------------------
+
+--The harborage zoneIds for each alliance
+local allianceZone2TheHarborage = {
+    [ALLIANCE_ALDMERI_DOMINION] =		381,
+    [ALLIANCE_DAGGERFALL_COVENANT] = 	3,
+	[ALLIANCE_EBONHEART_PACT] =			41,
+}
+
+--Adjusted parent zonIds for the geographical parentZone checks
+lib.adjustedParentZoneIds = {
+	[199] = 	allianceZone2TheHarborage[GetUnitAlliance("player")], -- The Harborage --> Player alliance home
+	[689] = 	684, -- Nikolvara's Kennel --> Wrothgar
+	[678] = 	584, -- Imperial City Prison --> Imperial City
+	[688] = 	584, -- White-Gold Tower --> Imperial City
+	[1209] = 	1208, -- Gloomreach --> Blackreach: Arkthzand Cavern
+}
+
+-- Parent zoneIds which expand over multiple real zone IDs (like Ragnthar, the "virtual" Dwarven region which is located
+-- at Malabal Tor, Eastmarch and Alik'r Desert the same time -> Allthough the region is said to be "outside of Nirn", once
+-- entered)
+lib.adjustedParentMultiZoneIds = {
+	[385] = { -- Ragnthar
+		[58] = 	true, -->> Malabal Tor
+		[101] = true, -->> Eastmarch
+		[104] = true, -->> Alik'r Desert
+	}
+}
+
+
+------------------------------------------------------------------------------------------------------------------------
+
 -- Geographic info by zoneId.
 -- [zoneId] = {[parentZoneId] = poiIndex}
 lib.geoDataReferenceTable = {
@@ -2689,6 +2725,7 @@ lib.geoDataReferenceTable = {
 	},
 	]]
 }
+
 
 --[[ Locate
 	During witches festival

@@ -35,13 +35,17 @@ local isAddonDevOfLibZone = (GetDisplayName() == '@Baertram' and true) or false
 
 local pubDungeons
 local poiDataTable
-local wayshrineString
+
+local translations = lib.translations
+local wayshrineString = translations.wayshrineString
+
 local geoDataReferenceTable
 local adjustedParentZoneIds
 local adjustedParentMultiZoneIds
 
 local getZoneData
 local getZoneName
+
 
 ------------------------------------------------------------------------
 -- 	Helper functions
@@ -714,6 +718,12 @@ function lib:GetMapNames(override)
     return mapId2Name
 end
 
+
+------------------------------------------------------------------------------------------------------------------------
+--v- Geographical parent zone Info
+--> By IsJustaGhost, 2022-05. Used by himself and Thal-J (https://gitter.im/esoui/esoui)
+------------------------------------------------------------------------------------------------------------------------
+
 --Get the zoneData of the zoneId and read it's pinInfo, and return the parentZoneId and, 
 --if exists, poiIndex of the map pin associated with the zoneId.
 --parameters number: zoneId, number:nilable parentZoneId
@@ -753,7 +763,8 @@ end
 --end
 function lib:GetZoneMapPinInfo(zoneId, parentZoneId)
 	if zoneId == nil or type(zoneId) ~= 'number' then return end
-	local geoData = geoDataReferenceTable[zoneId]
+	local poiIndex
+    local geoData = geoDataReferenceTable[zoneId]
 	if geoData then
 		-- Try to get poiIndices using parentZoneId
 		if parentZoneId then
@@ -811,7 +822,7 @@ function lib:GetGeographicalParentMapId(mapId)
 	return getZoneGeographicalParentMapId(lib, GetZoneId(zoneIndex))
 end
 
--- Display pins for the selected zone.
+-- Display mapPins of relevant POIs for the selected zone.
 --parameters number: zoneId
 function lib:InspectZonePoiInfo(zoneId)
 	if zoneId == nil or type(zoneId) ~= 'number' then return end
@@ -829,8 +840,9 @@ function lib:InspectZonePoiInfo(zoneId)
 end
 
 --Display a list of zones not included in geoDataReferenceTable.
---Then, for each zone, locate it's parent/s. Use each parentZoneId with InspectZonePoiInfo and
---compare the zone's name with pin names listed. Add relevant indices to geoDataReferenceTable.
+-->Manual tasks to do as following steps:
+--For each zone, locate it's parent/s. Use each parentZoneId with InspectZonePoiInfo and compare the zone's name with
+--pin names listed. Add relevant indices to geoDataReferenceTable.
 --Some pin names do not match the zone name they are associated with. Example: zoneName = The Mage's Staff, pinName = Spellscar
 --If the zone is inside another subzone that has a pin on the parent, use the subzone's pinIndex.
 --If there is no relevant pin, set pinIndex to 0.
@@ -843,6 +855,11 @@ function lib:VerifyGeoData()
 		end
 	end
 end
+------------------------------------------------------------------------------------------------------------------------
+--^- Geographical parent zone Info
+------------------------------------------------------------------------------------------------------------------------
+
+
 
 ------------------------------------------------------------------------
 -- 	Addon/Librray load functions
