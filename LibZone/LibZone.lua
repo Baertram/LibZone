@@ -172,25 +172,25 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
     doReloadUI = doReloadUI or false
 
     --Client language
-    local lang = self.currentClientLanguage
+    local lang = lib.currentClientLanguage
     if lang == nil then return false end
     --d("[LibZone]GetAllZoneDataById, reBuildNew: " ..tostring(reBuildNew) .. ", doReloadUI: " ..tostring(doReloadUI) .. ", lang: " .. tostring(lang))
     --Maximum of ZoneIds to check
-    if self.maxZoneIndices or self.maxZoneIndices == 0 then
+    if lib.maxZoneIndices or lib.maxZoneIndices == 0 then
         --Get the maximum possible zoneIndex and zoneId
-        self.maxZoneIndices, self.maxZoneIds = getMaxZoneIndicesAndIds()
+        lib.maxZoneIndices, lib.maxZoneIds = getMaxZoneIndicesAndIds()
     end
-    local maxZoneIndices = self.maxZoneIndices
+    local maxZoneIndices = lib.maxZoneIndices
     assert(maxZoneIndices ~= nil, "[\'" .. libraryName .. "\':GetAllZoneDataById]Error: Missing maxZoneIndices!")
     --Local SavedVariable data
-    local zoneData = self.zoneData
+    local zoneData = lib.zoneData
     if zoneData == nil then
-        self.zoneData = {}
-        zoneData = self.zoneData
+        lib.zoneData = {}
+        zoneData = lib.zoneData
     end
-    local localizedZoneDataSV = self.localizedZoneData[lang]
+    local localizedZoneDataSV = lib.localizedZoneData[lang]
     if zoneData == nil then return false end
-    local preloadedZoneNamesTable = self.preloadedZoneNames[lang]
+    local preloadedZoneNamesTable = lib.preloadedZoneNames[lang]
     --The preloaded zoneData does not exist for the whole language
     local languageIsMissingInTotal = false
     if preloadedZoneNamesTable == nil then
@@ -213,8 +213,8 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
                 local zoneName = GetZoneNameById(zoneId)
                 if zoneName and zoneName ~= "" then
                     if localizedZoneDataSV == nil then
-                        self.localizedZoneData[lang] = {}
-                        localizedZoneDataSV = self.localizedZoneData[lang]
+                        lib.localizedZoneData[lang] = {}
+                        localizedZoneDataSV = lib.localizedZoneData[lang]
                     end
                     localizedZoneDataSV[zoneId] = ZO_CachedStrFormat("<<C:1>>", zoneName)
                     wasCreatedNew = true
@@ -252,9 +252,9 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
     --Was at least one zoneId added/changed?
     if addedAtLeastOne then
         --Update the API version as the zoneIds check was done
-        local currentAPIVersion = self.currentAPIVersion
-        self.zoneData.lastZoneCheckAPIVersion = self.zoneData.lastZoneCheckAPIVersion or {}
-        self.zoneData.lastZoneCheckAPIVersion[lang] = currentAPIVersion
+        local currentAPIVersion = lib.currentAPIVersion
+        lib.zoneData.lastZoneCheckAPIVersion = lib.zoneData.lastZoneCheckAPIVersion or {}
+        lib.zoneData.lastZoneCheckAPIVersion[lang] = currentAPIVersion
         --Reload the UI now to update teh SavedVariables?
         --Add the current API version to the language table so one knows when the data was collected
         if localizedZoneDataSV then
@@ -275,7 +275,7 @@ local getAllZoneDataById = lib.GetAllZoneDataById
 --->    },
 --->}
 function lib:GetAllZoneData()
-    return self.preloadedZoneNames
+    return lib.preloadedZoneNames
 end
 
 --Return the zoneData of a zone, determined by help of the subZone ID.
@@ -290,7 +290,7 @@ end
 --If no parent zone can be found the return value will be nil.
 function lib:GetZoneDataBySubZone(subZoneId, language)
     assert (subZoneId ~= nil, "[\'" .. libraryName .. "\':GetZoneDataBySubZone]Error: Missing SubZoneId!")
-    language = language or self.currentClientLanguage
+    language = language or lib.currentClientLanguage
     getZoneName = getZoneName or lib.GetZoneName
     local retParentZoneTable = {}
     local parentZoneId = GetParentZoneId(subZoneId) or 0
@@ -313,10 +313,10 @@ end
 -- }
 function lib:GetZoneData(zoneId, subZoneId, language)
     assert (zoneId ~= nil, "[\'" .. libraryName .. "\':GetZoneData]Error: Missing zoneId!")
-    language = language or self.currentClientLanguage
+    language = language or lib.currentClientLanguage
     local readZoneData, readSubZoneData
-    local zoneData =  self.zoneData
-    local localizedZoneData = self.preloadedZoneNames[language]
+    local zoneData =  lib.zoneData
+    local localizedZoneData = lib.preloadedZoneNames[language]
     if zoneData ~= nil and localizedZoneData ~= nil then
         readZoneData = zoneData[zoneId] or nil
         local readZoneName = localizedZoneData[zoneId] or nil
@@ -345,7 +345,7 @@ getZoneData = lib.GetZoneData
 --Output zone informtaion to the chat, using the zoneId, subZoneId (connected to zoneId via parentZoneId) and the language (e.g. "en" or "fr")
 function lib:ShowZoneData(zoneId, subZoneId, language)
     assert (zoneId ~= nil, "[\'" .. libraryName .. "\':ShowZoneData]Error: Missing zoneId!")
-    language = language or self.currentClientLanguage
+    language = language or lib.currentClientLanguage
     local zoneIdData, subZoneIdData = getZoneData(lib, zoneId, subZoneId, language)
     if zoneIdData ~= nil then
         d("[" .. libraryName .. "]ShowZoneData for zoneId \"".. tostring(zoneId) .. "\", subZoneId: \"".. tostring(subZoneId) .. "\", language: \"" .. tostring(language) .. "\"")
@@ -367,12 +367,12 @@ local showZoneData = lib.ShowZoneData
 --->Returns localized String of the zoneName
 function lib:GetZoneName(zoneId, language)
     assert(zoneId ~= nil, "[\'" .. libraryName .. "\':GetZoneName]Error: Missing zoneId!")
-    language = language or self.currentClientLanguage
-    local localizedZoneIdData = self.preloadedZoneNames[language]
+    language = language or lib.currentClientLanguage
+    local localizedZoneIdData = lib.preloadedZoneNames[language]
     if localizedZoneIdData == nil then
         local retName = ""
         --Is the language the client language?
-        if language == self.currentClientLanguage then
+        if language == lib.currentClientLanguage then
             --Get the zone name by the help of API function
             retName = ZO_CachedStrFormat("<<C:1>>", GetZoneNameById(zoneId))
         end
@@ -395,7 +395,7 @@ getZoneName = lib.GetZoneName
 ---->returnTable[3] = "Glenumbra"
 function lib:GetZoneNamesByIds(zoneIdsTable, language)
     assert (zoneIdsTable ~= nil and type(zoneIdsTable) == "table", "[\'" .. libraryName .. "\':GetZoneNamesByIds]Error: Missing zoneId table.\nTable's format must be \"[number TableIndex] = number ZoneId,\"!")
-    language = language or self.currentClientLanguage
+    language = language or lib.currentClientLanguage
     local retNameTable = {}
     getZoneName = getZoneName or lib.GetZoneName
     for _, zoneId in pairs(zoneIdsTable) do
@@ -426,7 +426,7 @@ end
 ---->}
 function lib:GetZoneDataByIds(zoneIdsTable, language)
     assert (zoneIdsTable ~= nil and type(zoneIdsTable) == "table", "[\'" .. libraryName .. "\':GetZoneDataByIds]Error: Missing zoneId table.\nTable's format must be \"[number TableIndex] = number ZoneId,\"!")
-    language = language or self.currentClientLanguage
+    language = language or lib.currentClientLanguage
     local retZoneDataTable = {}
     getZoneData = getZoneData or lib.GetZoneData
     for _, zoneId in pairs(zoneIdsTable) do
@@ -451,16 +451,16 @@ function lib:GetZoneNameByLocalizedSearchString(searchStr, searchLanguage, retur
     local langIsSupported = checkIfLanguageIsSupported(returnLanguage) or false
     assert (langIsSupported == true, "[\'" .. libraryName .. "\':GetZoneNameByLocalizedSearchString]Error: Return language \"" .. tostring(returnLanguage) .. "\" is not supported!")
     langIsSupported = false
-    searchLanguage = searchLanguage or self.currentClientLanguage
+    searchLanguage = searchLanguage or lib.currentClientLanguage
     --Disabled 2021-04-15, upon request of "SimonIllyan" here: https://www.esoui.com/downloads/info2171-LibZone.html#comments
     --assert (searchLanguage ~= returnLanguage, "[\'" .. libraryName .. "\':GetZoneNameByLocalizedSearchString]Error: Search language and returning language must be different!")
     langIsSupported = checkIfLanguageIsSupported(searchLanguage) or false
     assert (langIsSupported == true, "[\'" .. libraryName .. "\':GetZoneNameByLocalizedSearchString]Error: Search language \"" .. tostring(searchLanguage) .. "\" is not supported!")
     local retZoneIdsTable = {}
     local retZoneLocalizedZoneNamesTable = {}
-    local localizedSearchZoneData = self.preloadedZoneNames[searchLanguage]
+    local localizedSearchZoneData = lib.preloadedZoneNames[searchLanguage]
     assert (localizedSearchZoneData ~= nil, "[\'" .. libraryName .. "\':GetZoneNameByLocalizedSearchString]Error: Missing localized search zone data with language \"" .. tostring(searchLanguage) .. "\"!")
-    local zoneReturnLocalizedData = self.preloadedZoneNames[returnLanguage]
+    local zoneReturnLocalizedData = lib.preloadedZoneNames[returnLanguage]
     assert (zoneReturnLocalizedData ~= nil, "[\'" .. libraryName .. "\':GetZoneNameByLocalizedSearchString]Error: Missing localized return zone data with language \"" .. tostring(returnLanguage) .. "\"!")
     for zoneId, zoneName in pairs(localizedSearchZoneData) do
         if zoneName ~= "" and zo_plainstrfind(zoneName:lower(), searchStr:lower()) then
@@ -481,11 +481,11 @@ end
 --Function to return the maximum zoneId and the maximum zoneIndex possible within the game
 --> Returns: number maximumZoneId, number maximumZoneIndex
 function lib:GetMaxZoneId()
-    if self.maxZoneId == 0 or self.maxZoneIndices == 0 then
+    if lib.maxZoneId == 0 or lib.maxZoneIndices == 0 then
         --Get the maximum possible zoneIndex and zoneId
-        self.maxZoneIndices, self.maxZoneIds = getMaxZoneIndicesAndIds()
+        lib.maxZoneIndices, lib.maxZoneIds = getMaxZoneIndicesAndIds()
     end
-    return self.maxZoneIds, self.maxZoneIndices
+    return lib.maxZoneIds, lib.maxZoneIndices
 end
 
 
@@ -823,9 +823,13 @@ function lib:GetGeographicalParentMapId(mapId)
 	return getZoneGeographicalParentMapId(lib, GetZoneId(zoneIndex))
 end
 
--- Display mapPins of relevant POIs for the selected zone.
+
+------------------------------------------------------------------------------------------------------------------------
+-- Debugging functions
+---------------------------------------------------------------------------------------------------------------------------
+--Display mapPins' poiIndex and name of relevant POIs for the selected zone.
 --parameters number: zoneId
-function lib:InspectZonePoiInfo(zoneId)
+function lib:DebugInspectZonePoiInfo(zoneId)
 	if zoneId == nil or type(zoneId) ~= 'number' then return end
 	local zoneIndex = GetZoneIndex(zoneId)
 	local poiCount = GetNumPOIs(zoneIndex)
@@ -840,15 +844,10 @@ function lib:InspectZonePoiInfo(zoneId)
 	end
 end
 
---Display a list of zones not included in geoDataReferenceTable.
--->Manual tasks to do as following steps:
---For each zone, locate it's parent/s. Use each parentZoneId with InspectZonePoiInfo and compare the zone's name with
---pin names listed. Add relevant indices to geoDataReferenceTable.
---Some pin names do not match the zone name they are associated with. Example: zoneName = The Mage's Staff, pinName = Spellscar
---If the zone is inside another subzone that has a pin on the parent, use the subzone's pinIndex.
---If there is no relevant pin, set pinIndex to 0.
-function lib:VerifyGeoData()
-    local maxZoneIndices = self.maxZoneIndices
+--Display a list of zones not included in geoDataReferenceTable. Used after updates to check for new data, see file
+--LibZone_GeoData.lua, "HOWTO - Update Geo parent data after new patches:"
+function lib:DebugVerifyGeoData()
+    local maxZoneIndices = lib.maxZoneIndices
     for zoneIndexOfZoneId=0, maxZoneIndices do
         local zoneId = GetZoneId(zoneIndexOfZoneId)
 		if zoneId and zoneId > 2 and not geoDataReferenceTable[zoneId] then

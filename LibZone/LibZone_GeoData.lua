@@ -34,6 +34,28 @@ local lib = LibZone
 --> By IsJustaGhost, 2022-05. Used by himself and Thal-J (https://gitter.im/esoui/esoui)
 ------------------------------------------------------------------------------------------------------------------------
 
+--[[
+HOWTO - Update Geo parent data after new patches:
+
+You get the list of zones that have not yet been added using the function:
+LibZone:DebugVerifyGeoData()
+
+>Manual tasks to do as following steps:
+Run each of those zoneIds parentZoneIds from lib:DebugVerifyGeoData() through LibZone:DebugInspectZonePoiInfo(zoneId)
+DebugInspectZonePoiInfo displays a list of all pois for the zone: "number:poiIndex, string:poiName",
+Compare the zone name received from DebugVerifyGeoData with the list displayed from DebugInspectZonePoiInfo.
+-->lets say you get 12 zones added with an update. The zones will not be in geoDataReferenceTable. A list of those 12
+--> zones will be output to chat, or debuglogger if that is capturing "d()"
+--> One needs to know the parent zoneId to start with. That will require a bit of research. I guess GetParentZoneId()
+--> will work on most. If you know the zone not overworld, than it should be listed in it's parent zone's list output
+--> for DebugInspectZonePoiInfo
+
+--Some pin names do not match the zone name they are associated with. Example: zoneName = The Mage's Staff, pinName = Spellscar
+--If the zone is inside another subzone that has a pin on the parent, use the subZone's pinIndex (pinIndex = poiIndex at
+-- table lib.geoDataReferenceTable).
+--If there is no relevant pin, set pinIndex/poiIndex to 0.
+]]
+
 --The harborage zoneIds for each alliance
 local allianceZone2TheHarborage = {
     [ALLIANCE_ALDMERI_DOMINION] =		381,
