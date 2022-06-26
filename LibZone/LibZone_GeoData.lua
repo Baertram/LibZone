@@ -39,22 +39,68 @@ HOWTO - Update Geo parent data after new patches:
 
 You get the list of zones that have not yet been added using the function:
 LibZone:DebugVerifyGeoData()
-
+-- >Runs a series of functions to check if any zones have not been accounted for in lib.geoDataReferenceTable and lib.geoDebugData savedVariables.
+-- >For all zones not accounted for, adds to a savedVariable based on if it was matched with a map pin or not.
 >Manual tasks to do as following steps:
-Run each of those zoneIds parentZoneIds from lib:DebugVerifyGeoData() through LibZone:DebugInspectZonePoiInfo(zoneId)
-DebugInspectZonePoiInfo displays a list of all pois for the zone: "number:poiIndex, string:poiName",
-Compare the zone name received from DebugVerifyGeoData with the list displayed from DebugInspectZonePoiInfo.
--- >lets say you get 12 zones added with an update. The zones will not be in geoDataReferenceTable. A list of those 12
--- > zones will be output to chat, or debuglogger if that is capturing "d()"
--- > One needs to know the parent zoneId to start with. That will require a bit of research. I guess GetParentZoneId()
--- > will work on most. If you know the zone not overworld, than it should be listed in it's parent zone's list output
--- > for DebugInspectZonePoiInfo
-
+--
+Copy the LibZone_GeoDebug_SV_Data to a blank document. Use regex to condense the savedVariable output.
+--	[1318] = 														[1318] = {
+--	{																	[1318] = 0, -- High Isle --> High Isle 
+--		[1318] = 0,													},
+--		["1318 target"] = "-- High Isle --> High Isle"
+--	},
+--
+After condensing, verify "unverified" entries using the "zonePoiInfo" by comparing zoneNames to poiNames.
+-- If no match, it may take some aditional research to determine if the zone has a poi pin on another map, 
+-- can use a pin in relitive location, or is best to leave set to no pin (0).
 -- Some pin names do not match the zone name they are associated with. Example: zoneName = The Mage's Staff, pinName = Spellscar
 -- If the zone is inside another subzone that has a pin on the parent, use the subZone's pinIndex (pinIndex = poiIndex at
 -- table lib.geoDataReferenceTable).
--- If there is no relevant pin, set pinIndex/poiIndex to 0.
+-- If there is no relevant pin, leave pinIndex/poiIndex at 0.
+--
+-- Minimal requirement is to ensure parentZoneId is correct. If no map pin just leave at 0.
+-- Manually append verified and updated unverified entries to lib.geoDataReferenceTable.
+-- LibZone:DebugClearGeoDataSv() to clear the geoDebugData savedVariables once complete.
 ]]
+
+local sample_LibZone_GeoDebug_SV_Data = {
+	["verified"] = 
+	{
+		[1328] = -- < zoneId
+		{
+			[1318] = 5, -- < [parentZoneId] = poiIndex
+			-- "--zoneName --> parentZoneName",
+			["1318 target"] = "--Garick's Rest --> High Isle",
+		},
+	},
+	["unverified"] = 
+	{
+		[1344] = 
+		{
+			[1318] = 0,
+			["1318 target"] = "--Dreadsail Reef --> High Isle",
+		},
+		[1313] = 
+		{
+			[1318] = 0,
+			["1318 target"] = "--Systres Sisters Vault --> High Isle",
+		},
+		[1319] =  {
+			[1318] = 0,
+			["1318 target"] = "--Gonfalon Bay Outlaws Refuge --> High Isle",
+		},
+	},
+	["zonePoiInfo"] = 
+	{
+		[1318] = -- < [parentZoneId] detrermined by GetParentZoneId(zoneId)
+		{
+			[1] = "Gonfalon Bay", -- < [poiIndex] = poiName
+			[2] = "Castle Navire",
+			[3] = "Steadfast Manor",
+			[4] = "Stonelore Grove",
+		}
+	}
+}
 
 -- The harborage zoneIds for each alliance
 local allianceZone2TheHarborage = {
