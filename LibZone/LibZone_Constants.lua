@@ -38,6 +38,7 @@ libZone.url                     = "https://www.esoui.com/downloads/info2171-LibZ
 --SavedVariables info
 libZone.svDataName              = "LibZone_SV_Data"
 libZone.svLocalizedDataName     = "LibZone_Localized_SV_Data"
+libZone.svGeoDebugDataName		= "LibZone_GeoDebug_SV_Data"
 libZone.svVersion               = libZone.version -- Changing this will reset the SavedVariables!
 libZone.svDataTableName         = "ZoneData"
 

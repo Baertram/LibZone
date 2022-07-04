@@ -85,6 +85,12 @@ local function librarySavedVariables()
     -->Save to "$AllAccounts" so the data is only once in the SavedVariables for all accounts, on each server!
     lib.zoneData            = ZO_SavedVars:NewAccountWide(libZone.svDataName,           svVersion, svDataTableName, defaultZoneData, worldName, "$AllAccounts")
     lib.localizedZoneData   = ZO_SavedVars:NewAccountWide(libZone.svLocalizedDataName,  svVersion, svDataTableName, defaultZoneData, worldName, "$AllAccounts")
+	lib.geoDebugData		= ZO_SavedVars:NewAccountWide(libZone.svGeoDebugDataName,	   svVersion, nil, nil, worldName, "$AllAccounts")
+	if lib.geoDebugData.verified then
+		-- Append saved geoData to geoDataReferenceTable
+		local verified = lib.geoDebugData.verified
+		zo_mixin(geoDataReferenceTable, verified)
+	end
 end
 
 --Check other langauges than the client language: Is there any zoneData given?
@@ -823,7 +829,6 @@ function lib:GetGeographicalParentMapId(mapId)
 	return getZoneGeographicalParentMapId(lib, GetZoneId(zoneIndex))
 end
 
-
 ------------------------------------------------------------------------------------------------------------------------
 -- Debugging functions
 ---------------------------------------------------------------------------------------------------------------------------
@@ -844,17 +849,147 @@ function lib:DebugInspectZonePoiInfo(zoneId)
 	end
 end
 
---Display a list of zones not included in geoDataReferenceTable. Used after updates to check for new data, see file
---LibZone_GeoData.lua, "HOWTO - Update Geo parent data after new patches:"
-function lib:DebugVerifyGeoData()
-    local maxZoneIndices = lib.maxZoneIndices
-    for zoneIndexOfZoneId=0, maxZoneIndices do
-        local zoneId = GetZoneId(zoneIndexOfZoneId)
-		if zoneId and zoneId > 2 and not geoDataReferenceTable[zoneId] then
-			d(string.format('zoneId = %s, %s', zoneId, GetZoneNameById(zoneId)))
+-- Used after updating geoDataReferenceTable with savedVariable data to clear the geoDebugData savedVariables.
+function lib:DebugClearGeoDataSv()
+	lib.geoDebugData = {}
+end
+
+do -- Consolidation of local functions used for updating geo data.
+	local poiNameDebugTable = {}
+	-- Generate poi info reference table
+	-- [string:poiName] = {[number:parentZoneId] = number:poiIndex}
+	local function populatePoiNameTable()
+		local maxZoneIndices = lib.maxZoneIndices
+		for zoneIndexOfZoneId=0, maxZoneIndices do
+			local zoneId = GetZoneId(zoneIndexOfZoneId)
+			local poiCount = GetNumPOIs(zoneIndexOfZoneId)
+			if poiCount and poiCount > 0 then
+				for poiIndex = 1, poiCount do
+					local poiName = GetPOIInfo(zoneIndexOfZoneId, poiIndex)
+					if poiName and poiName ~= '' and not poiName:match(wayshrineString) then
+						poiName = poiName:lower()
+						local poiInfo = poiNameDebugTable[poiName] or {}
+						poiInfo[zoneId] = poiIndex
+						poiNameDebugTable[poiName] = poiInfo
+					end
+				end
+			end
+		end
+	end
+	
+	--> returns table:poiInfo
+	-- poiInfo is all named POIs for given zoneId. Excluding wayshrines.
+	-- This data is used to manually verify missing poiIndices.
+	local function getZonePoiData(zoneId)
+		if zoneId == nil or type(zoneId) ~= 'number' then return end
+		local zoneIndex = GetZoneIndex(zoneId)
+		local poiCount = GetNumPOIs(zoneIndex)
+		local poiInfo = {}
+		if poiCount and poiCount > 0 then
+			for poiIndex = 1, poiCount do
+				local poiName = GetPOIInfo(zoneIndex, poiIndex)
+				--Exclude wayshrines
+				if poiName and poiName ~= '' and not poiName:match(wayshrineString) then
+					poiInfo[poiIndex] = poiName
+				end
+			end
+		end
+		return poiInfo
+	end
+
+	-- Store zone and poi info in appropriate savedVariable
+	-- parentZoneId .. ' target' used for identifying each entry manually.
+	-- Using [parentZoneId .. ' target'] instead of {poiIndex and names} in a table since the data is auto-appended as is to geoDataReferenceTable.
+	-- Actually. Target can be omitted. It's only being used as a visual reference for manual updates.
+	local function addGeoData(zoneId, poiInfo, verified)
+		local geoDebugDataSV = lib.geoDebugData
+		local info = {}
+	
+		if verified then
+			local geoData = geoDebugDataSV.verified or {}
+			for parentZoneId, poiIndex in pairs(poiInfo) do
+				info[parentZoneId] = poiIndex
+				info[parentZoneId .. ' target'] = '-- ' .. GetZoneNameById(zoneId) .. ' --> ' .. GetZoneNameById(parentZoneId)
+			end
+			geoData[zoneId] = info
+			geoDebugDataSV.verified = geoData
+		else
+			local geoData = geoDebugDataSV.unverified or {}
+			local parentZoneId = GetParentZoneId(zoneId)
+			info[parentZoneId] = 0
+			info[parentZoneId .. ' target'] = '-- ' .. GetZoneNameById(zoneId) .. ' --> ' .. GetZoneNameById(parentZoneId)
+			geoData[zoneId] = info
+			geoDebugDataSV.unverified = geoData
+			
+			local zonePoiInfo = geoDebugDataSV.zonePoiInfo or {}
+			-- lets only run this once per parent zone
+			if not zonePoiInfo[parentZoneId] then
+				zonePoiInfo[parentZoneId] = getZonePoiData(parentZoneId)
+				geoDebugDataSV.zonePoiInfo = zonePoiInfo
+			end
+		end
+	end
+
+	--> returns table:poiInfo
+	-- poiInfo = {[number:parentZoneId] = number:poiIndex,}
+	local function getZonePoiInfo(zoneId)
+		if zoneId == nil or type(zoneId) ~= 'number' then return end
+		local zoneName = GetZoneNameById(zoneId):lower()
+		local poiInfo = poiNameDebugTable[zoneName]
+		return poiInfo
+	end
+
+	-- Generates a table of all zoneIds that have not been accounted for in lib.geoDataReferenceTable and lib.geoDebugData savedVariables.
+	--> returns table:unKnownZoneIds
+	-- unKnownZoneIds = {number:zoneId, }
+	local function getUnknownZoneIds()
+		local geoDebugDataSV = lib.geoDebugData
+		local currentGeoData = geoDataReferenceTable
+		
+		if geoDebugDataSV.unverified then
+			zo_mixin(currentGeoData, geoDebugDataSV.unverified)
+		end
+
+		local maxZoneIndices = lib.maxZoneIndices
+		local unKnownZoneIds = {}
+		for zoneIndexOfZoneId=0, maxZoneIndices do
+			local zoneId = GetZoneId(zoneIndexOfZoneId)
+			if zoneId and zoneId > 2 and not currentGeoData[zoneId] then
+				table.insert(unKnownZoneIds, zoneId)
+			end
+		end
+		
+		return unKnownZoneIds
+	end
+
+	-- lib:DebugVerifyGeoData()
+	-- Runs a series of functions to check if any zones have not been accounted for in lib.geoDataReferenceTable and lib.geoDebugData savedVariables.
+	-- For all zones not accounted for, adds to a savedVariable based on if it was matched with a map pin or not.
+	--
+	-- 	use regex to condense the savedVariable output.
+	--	[1318] = 														[1318] = {
+	--	{																	[1318] = 0, -- High Isle --> High Isle 
+	--		[1318] = 0,													},
+	--		["1318 target"] = "-- High Isle --> High Isle"
+	--	},
+	-- 
+	-- Attempt to locate map pins for unverified entries. Use savedVariables zonePoiInfo as reference. Or, attempt to locate online.
+	-- Minimal requirement is to ensure parentZoneId is correct. If no map pin just leave at 0.
+	-- Manually append verified and updated unverified entries to lib.geoDataReferenceTable.
+	-- LibZone:DebugClearGeoDataSv() to clear the geoDebugData savedVariables.
+	function lib:DebugVerifyGeoData()
+		local unKnownZoneIds = getUnknownZoneIds()
+
+		if unKnownZoneIds then
+			populatePoiNameTable()
+			for k, zoneId in pairs(unKnownZoneIds) do
+				local poiInfo = getZonePoiInfo(zoneId)
+				addGeoData(zoneId, poiInfo, poiInfo ~= nil)
+			end
 		end
 	end
 end
+
 ------------------------------------------------------------------------------------------------------------------------
 --^- Geographical parent zone Info
 ------------------------------------------------------------------------------------------------------------------------
@@ -874,6 +1009,7 @@ local function OnLibraryLoaded(event, name)
         --Get the maximum possible zoneIndex and zoneId
         lib.maxZoneIndices, lib.maxZoneIds = getMaxZoneIndicesAndIds()
 
+		geoDataReferenceTable = lib.geoDataReferenceTable
         --Load SavedVariables
         librarySavedVariables()
 
@@ -892,7 +1028,6 @@ local function OnLibraryLoaded(event, name)
         --Do we have already datamined and localized zoneData given for other (non-client) languages? -> See file LibZone_Data.lua
         checkOtherLanguagesZoneDataAndTransferFromSavedVariables()
 
-		geoDataReferenceTable = lib.geoDataReferenceTable
         --Optional: Build the libSlashCommander autocomplete stuff, if LibSlashCommander is present and activated
         -->See file LibZone_AutoCompletion.lua
         lib:buildLSCZoneSearchAutoComplete()
