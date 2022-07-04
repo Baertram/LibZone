@@ -47,7 +47,7 @@ Copy the LibZone_GeoDebug_SV_Data to a blank document. Use regex to condense the
 --	[1318] = 														[1318] = {
 --	{																	[1318] = 0, -- High Isle --> High Isle 
 --		[1318] = 0,													},
---		["1318 target"] = "-- High Isle --> High Isle"
+--		["1318_target"] = "-- High Isle --> High Isle"
 --	},
 --
 After condensing, verify "unverified" entries using the "zonePoiInfo" by comparing zoneNames to poiNames.
@@ -61,16 +61,17 @@ After condensing, verify "unverified" entries using the "zonePoiInfo" by compari
 -- Minimal requirement is to ensure parentZoneId is correct. If no map pin just leave at 0.
 -- Manually append verified and updated unverified entries to lib.geoDataReferenceTable.
 -- LibZone:DebugClearGeoDataSv() to clear the geoDebugData savedVariables once complete.
-]]
 
-local sample_LibZone_GeoDebug_SV_Data = {
+
+--A sample of the GeoDebug SavedVariables to show the verified and unverified entries:
+sample_LibZone_GeoDebug_SV_Data = {
 	["verified"] = 
 	{
 		[1328] = -- < zoneId
 		{
 			[1318] = 5, -- < [parentZoneId] = poiIndex
 			-- "--zoneName --> parentZoneName",
-			["1318 target"] = "--Garick's Rest --> High Isle",
+			["1318_target"] = "--Garick's Rest --> High Isle",
 		},
 	},
 	["unverified"] = 
@@ -78,16 +79,16 @@ local sample_LibZone_GeoDebug_SV_Data = {
 		[1344] = 
 		{
 			[1318] = 0,
-			["1318 target"] = "--Dreadsail Reef --> High Isle",
+			["1318_target"] = "--Dreadsail Reef --> High Isle",
 		},
 		[1313] = 
 		{
 			[1318] = 0,
-			["1318 target"] = "--Systres Sisters Vault --> High Isle",
+			["1318_target"] = "--Systres Sisters Vault --> High Isle",
 		},
 		[1319] =  {
 			[1318] = 0,
-			["1318 target"] = "--Gonfalon Bay Outlaws Refuge --> High Isle",
+			["1318_target"] = "--Gonfalon Bay Outlaws Refuge --> High Isle",
 		},
 	},
 	["zonePoiInfo"] = 
@@ -101,6 +102,8 @@ local sample_LibZone_GeoDebug_SV_Data = {
 		}
 	}
 }
+]]
+
 
 -- The harborage zoneIds for each alliance
 local allianceZone2TheHarborage = {
@@ -130,9 +133,10 @@ lib.adjustedParentMultiZoneIds = {
 }
 
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-
--- Geographic info by zoneId.
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+-- Verified geographic info by zoneId.
 --[zoneId] = {[parentZoneId] = poiIndex}
 lib.geoDataReferenceTable = {
 	[2] = {
