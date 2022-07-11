@@ -218,6 +218,9 @@ setmetatable(preloadedZoneNames["jp"], {__index = referenceZoneNamesEN})
 --Custom langauges
 setmetatable(preloadedZoneNames["pl"], {__index = referenceZoneNamesEN})
 
+--Provide this translated data to the global library variable
+lib.preloadedZoneNames = preloadedZoneNames
+
 
 --Entries in this table "zoneIdsOfDifferentAPIVersion" will be removed from all zoneData tables below if the current
 --games's APIversion is below the key of the sub-table below.
@@ -274,8 +277,3 @@ local function removeNonLiveAPIVersionEntriesFromLibZoneData()
 	end
 end
 removeNonLiveAPIVersionEntriesFromLibZoneData()
-
-
---Provide this translated data to the global library variable
-lib.preloadedZoneNames = preloadedZoneNames
-

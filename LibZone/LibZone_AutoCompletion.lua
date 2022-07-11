@@ -32,6 +32,8 @@ local libZone = lib.libraryInfo
 
 local translations = lib.translations
 
+local getZoneName
+
 ------------------------------------------------------------------------
 -- 	Helper functions
 ------------------------------------------------------------------------
@@ -51,6 +53,8 @@ function lib:buildAutoComplete(command, langToUse)
     if command == nil or not checkIfLanguageIsSupported(langToUse) then return end
 
     local blacklistedZoneIdsForAutoCompletion = lib.blacklistedZoneIdsForAutoCompletion
+
+    getZoneName = getZoneName or lib.GetZoneName
 
     --Add sub commands for the zoneNames
     local this = self
@@ -98,7 +102,7 @@ function lib:buildAutoComplete(command, langToUse)
                     local alreadyAddedCleanTranslatedZoneNames = {} -- The resultsList for the autocomplete provider
                     local alreadyAddedCleanTranslatedZoneNamesLookup = {} -- The lookupList for the autocomplete provider
                     for langIdx, lang in ipairs(self.supportedLanguages) do
-                        local otherLanguageZoneName = lib:GetZoneName(zoneId, lang)
+                        local otherLanguageZoneName = getZoneName(lib, zoneId, lang)
                         if otherLanguageZoneName ~= nil and otherLanguageZoneName ~= "" then
                             otherLanguagesZoneName[langIdx] = otherLanguageZoneName
                         end

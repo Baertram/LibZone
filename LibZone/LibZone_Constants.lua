@@ -31,13 +31,14 @@
 local libZone = {}
 --Addon/Library info
 libZone.name                    = "LibZone"
-libZone.version                 = 7.9
+libZone.version                 = 8.0
 libZone.author                  = "Baertram"
 libZone.url                     = "https://www.esoui.com/downloads/info2171-LibZone.html"
 
 --SavedVariables info
 libZone.svDataName              = "LibZone_SV_Data"
 libZone.svLocalizedDataName     = "LibZone_Localized_SV_Data"
+libZone.svGeoDebugDataName		= "LibZone_GeoDebug_SV_Data"
 libZone.svVersion               = libZone.version -- Changing this will reset the SavedVariables!
 libZone.svDataTableName         = "ZoneData"
 
@@ -60,6 +61,10 @@ local supportedLanguages = {
 
 --Translations for this library
 local translations = {
+    --Localized "Wayshrine" string used to exclude wayshrine map pins.
+    wayshrineString = GetString(SI_DEATH_PROMPT_WAYSHRINE),
+
+    --------------------------------------------------------------------------------------------------------------------
     ["de"] = {
         ["de"]                              = "Deutsch",
         ["en"]                              = "Englisch",
@@ -189,6 +194,7 @@ lib.maxMapIds = 3500 -- Currently there are around 2100 -> API101031 Waking Flam
 lib.currentClientLanguage = clientLang
 lib.supportedLanguages = supportedLanguages
 lib.translations = translations
+
 
 --Blacklisted zoneIds which will not be added to the scanned (and thus not added to the auto completion) lists
 local blacklistedZoneIdsForAutoCompletion = {
