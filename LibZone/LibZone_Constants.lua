@@ -31,7 +31,7 @@
 local libZone = {}
 --Addon/Library info
 libZone.name                    = "LibZone"
-libZone.version                 = 8.0
+libZone.version                 = 8.1
 libZone.author                  = "Baertram"
 libZone.url                     = "https://www.esoui.com/downloads/info2171-LibZone.html"
 
@@ -57,6 +57,7 @@ local supportedLanguages = {
     [4] = "jp",
     [5] = "ru",
     [6] = "pl",
+    [7] = "es",
 }
 
 --Translations for this library
@@ -72,6 +73,7 @@ local translations = {
         ["jp"]                              = "Japanisch",
         ["ru"]                              = "Russisch",
         ["pl"]                              = "Polnisch",
+        ["es"]                              = "Spanisch",
         ["slashCommandDescription"]         = "Suche übersetzte Zonen Namen",
         ["slashCommandDescriptionClient"]   = "Suche Zonen Namen (Spiel Sprache)",
         ["libSlashCommanderMissing"]        = "Bitte Bibliothek 'LibSlashCommander' installieren!",
@@ -84,6 +86,7 @@ local translations = {
         ["jp"]  = "Japanese",
         ["ru"]  = "Russian",
         ["pl"]  = "Polish",
+        ["es"]  = "Spanish",
         ["slashCommandDescription"] = "Search translations of zone names",
         ["slashCommandDescriptionClient"] = "Search zone names (game client language)",
         ["libSlashCommanderMissing"] = "Please install library 'LibSlashCommander'!",
@@ -96,6 +99,7 @@ local translations = {
         ["jp"]  = "Japonais",
         ["ru"]  = "Russe",
         ["pl"]  = "Polonais",
+        ["es"]  = "Espagnol",
         ["slashCommandDescription"] = "Rechercher des traductions de noms de zones",
         ["slashCommandDescriptionClient"] = "Rechercher des noms de zones (langue du jeu)",
         ["libSlashCommanderMissing"] = "Svp installer la bibliothèque 'LibSlashCommander'!",
@@ -108,6 +112,7 @@ local translations = {
         ["jp"]  = "日本語",
         ["ru"]  = "ロシア",
         ["pl"]  = "ポーランド語",
+        ["es"]  = "スペイン語",
         ["slashCommandDescription"] = "ゾーン名の翻訳を検索する",
         ["slashCommandDescriptionClient"] = "ゾーン名（ゲームの言語）を検索する",
         ["libSlashCommanderMissing"] = "ライブラリ'LibSlashCommander'をインストールしてください!",
@@ -120,6 +125,7 @@ local translations = {
         ["jp"]  = "Япoнcкий",
         ["ru"]  = "Pуccкий",
         ["pl"]  = "польский",
+        ["es"]  = "испанский",
         ["slashCommandDescription"] = "Поиск переводов названий зон",
         ["slashCommandDescriptionClient"] = "Поиск по названию зоны (язык игры)",
         ["libSlashCommanderMissing"] = "Пожалуйста, установите библиотеку 'LibSlashCommander'!",
@@ -132,10 +138,24 @@ local translations = {
         ["jp"] = "Japoński",
         ["ru"] = "Rosyjski",
         ["pl"] = "Polskie",
+        ["es"] = "Hiszpański",
         ["slashCommandDescription"] = "Wyszukaj tłumaczenia nazw stref",
         ["slashCommandDescriptionClient"] = "Wyszukaj nazwy stref (język klienta gry)",
         ["libSlashCommanderMissing"] = "Zainstaluj bibliotekę „LibSlashCommander”!",
         ["LibraryAlreadyLoaded"]            = "Biblioteka \'%s\' została już załadowana!",
+    },
+    ["es"] = {
+        ["de"]  = "Alemán",
+        ["en"]  = "Inglés",
+        ["fr"]  = "Francés",
+        ["jp"]  = "Japonés",
+        ["ru"]  = "Ruso",
+        ["pl"]  = "Polaco",
+        ["es"]  = "Español",
+        ["slashCommandDescription"] = "Buscar traducciones de nombres de zona",
+        ["slashCommandDescriptionClient"] = "Buscar nombres de zonas (idioma del cliente del juego)",
+        ["libSlashCommanderMissing"] = "¡Instala la biblioteca 'LibSlashCommander'!",
+        ["LibraryAlreadyLoaded"]            = "¡La biblioteca \'%s\' ya se ha cargado!",
     },
 }
 

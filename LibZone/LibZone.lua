@@ -1046,3 +1046,9 @@ end
 --Load the addon now
 EVENT_MANAGER:UnregisterForEvent(libraryName, EVENT_ADD_ON_LOADED)
 EVENT_MANAGER:RegisterForEvent(libraryName, EVENT_ADD_ON_LOADED, OnLibraryLoaded)
+
+function MyBuildGuildRecruitmentLink(guildId)
+    if guildId == nil then return end
+    return string.format("|H1:guild:%s|h%s|h", tostring(guildId), tostring(GetGuildName(guildId)))
+end
+
