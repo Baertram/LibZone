@@ -213,6 +213,7 @@ local referenceZoneNamesEN = preloadedZoneNames["en"]
 --setmetatable(preloadedZoneNames["de"], {__index = referenceZoneNamesEN})
 --setmetatable(preloadedZoneNames["fr"], {__index = referenceZoneNamesEN})
 --setmetatable(preloadedZoneNames["ru"], {__index = referenceZoneNamesEN})
+--setmetatable(preloadedZoneNames["es"], {__index = referenceZoneNamesEN})
 --Special client languages
 setmetatable(preloadedZoneNames["jp"], {__index = referenceZoneNamesEN})
 --Custom langauges

@@ -2871,7 +2871,28 @@ lib.geoDataReferenceTable = {
 	[1327] =  {
 		[1318] = 0, -- The Undergrove -- > High Isle
 	},
-	
+
+	-- add zones for Update:35 High Isle
+	[1360] =
+	{
+		[1318] = 74, -- Earthen Root Enclave --> High Isle
+	},
+	[1361] =
+	{
+		[1318] = 75, -- Graven Deep --> High Isle
+	},
+
+
+	-- TODO: Investigate these locations.
+	[1366] =
+	{
+		[92] = 0, -- Glenmoril Ritual Site --> Bangkorai
+	},
+	[1365] =
+	{
+		[3] = 0, -- Eimhir's Cavern --> Glenumbra
+	},
+
 	-- add zones for api:######
 	--[[
 	[zoneId] = {
