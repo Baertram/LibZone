@@ -68,8 +68,8 @@ local clientLang 	= lib.currentClientLanguage
 
 
 ------------------------------------------------------------------------------------------------------------------------
---Last updated: 			API101034, PTS High Isle
---Date:						2022-04-22
+--Last updated: 			API101036, live Firesong
+--Date:						2022-12-27
 --Non updated languages:	jp, pl
 ------------------------------------------------------------------------------------------------------------------------
 --ZoneIds of the public dungeons of ESO as there is no real API function to determine we are in any Public Dungeon
@@ -230,12 +230,8 @@ local zoneIdsOfDifferentAPIVersion = {
 	--Updated: API1000xx
 	--List of zoneIds of the apiversion at the key. All prior APIVersions will remove it
 	--[1000xx] = {
+	--	1234,1245,1267,...
 	--},
-
-	--API 101036 Firesong - Updated 2022-09-23
-	[101036] = {
-		1376,1377,1378,1379,1380,1381,1382,1383,1385,1386,1387,1346,1367,1368,1369,1370,1371,1372,1373,1374,1375
-	}
 }
 
 --Dynamically try to add the zoneIds to the table above, which got no name string

@@ -3,7 +3,7 @@
 ## Author: Baertram
 ## AddOnVersion: 083
 ## Version: 8.3
-## APIVersion: 101035 101036
+## APIVersion: 101036 101037
 ## SavedVariables: LibZone_SV_Data LibZone_Localized_SV_Data LibZone_GeoDebug_SV_Data
 ## OptionalDependsOn: LibSlashCommander>=36
 ## IsLibrary: true
