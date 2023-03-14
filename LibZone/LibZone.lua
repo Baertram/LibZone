@@ -1031,7 +1031,7 @@ local function OnLibraryLoaded(event, name)
         if lastCheckedZoneAPIVersionOfLanguages ~= nil then
             lastCheckedZoneAPIVersion = lastCheckedZoneAPIVersionOfLanguages[lib.currentClientLanguage]
         end
-        --Get localized (client language) zone data and add missing deltat to SavedVariables (No reloadui!)
+        --Get localized (client language) zone data and add missing delta to SavedVariables (No reloadui!)
         local forceZoneIdUpdateDueToAPIChange = (lastCheckedZoneAPIVersion == nil or lastCheckedZoneAPIVersion ~= currentAPIVersion) or false
         getAllZoneDataById(lib, forceZoneIdUpdateDueToAPIChange, false)
         --Do we have already datamined and localized zoneData given for other (non-client) languages? -> See file LibZone_Data.lua
