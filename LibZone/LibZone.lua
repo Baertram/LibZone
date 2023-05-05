@@ -88,8 +88,8 @@ local function librarySavedVariables()
 	lib.geoDebugData		= ZO_SavedVars:NewAccountWide(libZone.svGeoDebugDataName,	svVersion, nil,             nil,                worldName, "$AllAccounts")
 	if lib.geoDebugData.verified ~= nil then
 		-- Append saved geoData to geoDataReferenceTable
-		local verified = lib.geoDebugData.verified
-		zo_mixin(geoDataReferenceTable, verified)
+	--	local verified = lib.geoDebugData.verified
+	--	zo_mixin(geoDataReferenceTable, verified)
 	end
 end
 
@@ -893,16 +893,18 @@ local function addGeoData(zoneId, poiInfo, verified)
     if verified == true then
         local geoData = geoDebugDataSV.verified or {}
         for parentZoneId, poiIndex in pairs(poiInfo) do
-            info[parentZoneId] = poiIndex
-            info[parentZoneId .. '_target'] = '-- ' .. GetZoneNameById(zoneId) .. ' --> ' .. GetZoneNameById(parentZoneId)
+      --      info[parentZoneId] = poiIndex
+     --       info[parentZoneId .. '_target'] = '-- ' .. GetZoneNameById(zoneId) .. ' --> ' .. GetZoneNameById(parentZoneId)
+            info[parentZoneId] = poiIndex .. ' -- ' .. GetZoneNameById(zoneId) .. ' --> ' .. GetZoneNameById(parentZoneId)
         end
         geoData[zoneId] = info
         geoDebugDataSV.verified = geoData
     else
         local geoData = geoDebugDataSV.unverified or {}
         local parentZoneId = GetParentZoneId(zoneId)
-        info[parentZoneId] = 0
-        info[parentZoneId .. '_target'] = '-- ' .. GetZoneNameById(zoneId) .. ' --> ' .. GetZoneNameById(parentZoneId)
+    --    info[parentZoneId] = 0
+     --   info[parentZoneId .. '_target'] = '-- ' .. GetZoneNameById(zoneId) .. ' --> ' .. GetZoneNameById(parentZoneId)
+		info[parentZoneId] = 0 .. ' -- ' .. GetZoneNameById(zoneId) .. ' --> ' .. GetZoneNameById(parentZoneId)
         geoData[zoneId] = info
         geoDebugDataSV.unverified = geoData
 
@@ -914,6 +916,7 @@ local function addGeoData(zoneId, poiInfo, verified)
         end
     end
 end
+	--	poiIndex .. '-- ' .. GetZoneNameById(zoneId) .. ' --> ' .. GetZoneNameById(parentZoneId)
 
 --Get the POI info data for a zoneId
 --> returns table:nilable poiInfo
@@ -974,12 +977,13 @@ end
 -- Runs a series of functions to check if any zones have not been accounted for in lib.geoDataReferenceTable and lib.geoDebugData savedVariables.
 -- For all zones not accounted for, adds to a savedVariable based on if it was matched with a map pin or not.
 --
--- 	use regex to condense the savedVariable output.
---	[1318] = 														[1318] = {
---	{																	[1318] = 0, -- High Isle --> High Isle
---		[1318] = 0,													},
---		["1318_target"] = "-- High Isle --> High Isle"
---	},
+-- Use the following regex to fix the entrys
+--	= "(\d+)(.*)",$
+--	= \1,\2
+--	[1318] = 														[1318] = 
+--	{																{
+--		[1318] = "0, -- High Isle --> High Isle",						[1318] = 0, -- High Isle --> High Isle 
+--	},																},
 --
 -- Attempt to locate map pins for unverified entries. Use savedVariables zonePoiInfo as reference. Or, attempt to locate online.
 -- Minimal requirement is to ensure parentZoneId is correct. If no map pin just leave at 0.
@@ -998,7 +1002,7 @@ function lib:DebugVerifyGeoData()
         end
     end
 end
-
+-- /script LibZone:DebugVerifyGeoData()
 ------------------------------------------------------------------------------------------------------------------------
 --^- Geographical parent zone Info
 ------------------------------------------------------------------------------------------------------------------------
