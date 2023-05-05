@@ -44,11 +44,13 @@ LibZone:DebugVerifyGeoData()
 >Manual tasks to do as following steps:
 --
 Copy the LibZone_GeoDebug_SV_Data to a blank document. Use regex to condense the savedVariable output.
---	[1318] = 														[1318] = {
---	{																	[1318] = 0, -- High Isle --> High Isle 
---		[1318] = 0,													},
---		["1318_target"] = "-- High Isle --> High Isle"
---	},
+-- Use the following regex to fix the entrys
+--	= "(\d+)(.*)",$
+-- = \1,\2
+--	[1318] = 														[1318] = 
+--	{																{
+--		[1318] = "0, -- High Isle --> High Isle",						[1318] = 0, -- High Isle --> High Isle 
+--	},																},
 --
 After condensing, verify "unverified" entries using the "zonePoiInfo" by comparing zoneNames to poiNames.
 -- If no match, it may take some aditional research to determine if the zone has a poi pin on another map, 
@@ -230,7 +232,8 @@ lib.geoDataReferenceTable = {
 		[117] = 39, -- Arx Corinium -- > Shadowfen 
 	},
 	[159] = {
-		[19] = 0, -- Emeric's Dream -- > Stormhaven 
+	--	[19] = 0, -- Emeric's Dream -- > Stormhaven 
+		[159] = 0, -- Emeric's Dream -- > self 
 	},
 	[162] = {
 		[20] = 16, -- Obsidian Scar -- > Rivenspire 
@@ -280,7 +283,8 @@ lib.geoDataReferenceTable = {
 		[199] = 0, -- The Foundry of Woe -- > The Harborage 
 	},
 	[201] = {
-		[199] = 0, -- Castle of the Worm -- > The Harborage 
+	--	[199] = 0, -- Castle of the Worm -- > The Harborage 
+		[347] = 0, -- Castle of the Worm -- > Coldharbour
 	},
 	[203] = {
 		[267] = 0, -- Cheesemonger's Hollow -- > Eyevea
@@ -2790,99 +2794,227 @@ lib.geoDataReferenceTable = {
 	[1279] = {
 		[108] = 0, -- Waking Flame Camp -- > Greenshade 
 	},
-	
-	-- add zones for HighIsle
-	[1318] =  {
-		[1318] = 0, -- High Isle -- > High Isle
-	},
-	[1328] =  {
-		[1318] = 5, -- Garick's Rest -- > High Isle
-	},
-	[1329] =  {
-		[1318] = 2, -- Castle Navire -- > High Isle
-	},
-	[1330] =  {
-		[1318] = 9, -- Brokerock Mine -- > High Isle
-	},
-	[1331] =  {
-		[1318] = 15, -- Death's Valor Keep -- > High Isle
-	},
-	[1332] =  {
-		[1318] = 14, -- The Firepot -- > High Isle
-	},
-	[1317] =  {
-		[1318] = 6, -- All Flags Islet -- > High Isle
-	},
-	[1334] =  {
-		[1318] = 17, -- Whalefall -- > High Isle
-	},
-	[1335] =  {
-		[1318] = 16, -- Shipwreck Shoals -- > High Isle
-	},
-	[1336] =  {
-		[1318] = 18, -- Coral Cliffs -- > High Isle
-	},
-	[1337] =  {
-		[1318] = 11, -- Spire of the Crimson Coin -- > High Isle
-	},
-	[1338] =  {
-		[1318] = 12, -- Ghost Haven Bay -- > High Isle
-	},
-	[1364] =  {
-		[1318] = 76, -- Ancient Anchor Berth -- > High Isle
-	},
-	[1324] =  {
-		[1318] = 3, -- Steadfast Manor -- > High Isle
-	},
-	[1363] =  {
-		[1318] = 77, -- Highhallow Hold -- > High Isle
-	},
-	[1326] =  {
-		[1318] = 2, -- Castle Navire -- > High Isle
-	},
-	[1333] =  {
-		[1318] = 13, -- Breakwater Cave -- > High Isle
-	},
-	[1344] =  {
-		[1318] = 40, -- Dreadsail Reef -- > High Isle
-	},
-	[1315] =  {
-		[1318] = 56, -- Abhain Chapel Crypts -- > High Isle
-	},
-	[1319] =  {
-		[1318] = 1, -- Gonfalon Bay Outlaws Refuge -- > High Isle
-	},
-	-- unmarked?
-	[1313] =  {
-		[1318] = 0, -- Systres Sisters Vault -- > High Isle
-	},
-	[1316] =  {
-		[1318] = 0, -- Old Coin Fort -- > High Isle
-	},
-	[1320] =  {
-		[1318] = 0, -- Tarnished Grotto -- > High Isle
-	},
-	[1321] =  {
-		[1318] = 0, -- Navire Dungeons -- > High Isle
-	},
-	[1322] =  { 
-		[1318] = 0, -- Mistmouth Cave -- > High Isle
-	},
-	[1327] =  {
-		[1318] = 0, -- The Undergrove -- > High Isle
-	},
 
-	-- add zones for Update:35 High Isle
-	[1360] =
+	-- add zones for HighIsle and Galen
+	[1376] = 
+	{
+		[1383] = 18, -- Suncleft Grotto --> Galen
+	},
+	[1377] = 
+	{
+		[1383] = 21, -- Clohaigh --> Galen
+	},
+	[1317] = 
+	{
+		[1318] = 6, -- All Flags Islet --> High Isle
+	},
+	[1387] = 
+	{
+		[1383] = 23, -- Ivyhame --> Galen
+	},
+	[1324] = 
+	{
+		[1318] = 3, -- Steadfast Manor --> High Isle
+	},
+	[1432] = 
+	{
+		[1318] = 85, -- Fogbreak Lighthouse --> High Isle
+	},
+	[1326] = 
+	{
+		[1318] = 2, -- Castle Navire --> High Isle
+	},
+	[1332] = 
+	{
+		[1318] = 14, -- The Firepot --> High Isle
+	},
+	[1328] = 
+	{
+		[1318] = 5, -- Garick's Rest --> High Isle
+	},
+	[1329] = 
+	{
+		[1318] = 2, -- Castle Navire --> High Isle
+	},
+	[1330] = 
+	{
+		[1318] = 9, -- Brokerock Mine --> High Isle
+	},
+	[1363] = 
+	{
+		[1318] = 77, -- Highhallow Hold --> High Isle
+	},
+	[1364] = 
+	{
+		[1318] = 76, -- Ancient Anchor Berth --> High Isle
+	},
+	[1333] = 
+	{
+		[1318] = 13, -- Breakwater Cave --> High Isle
+	},
+	[1334] = 
+	{
+		[1318] = 17, -- Whalefall --> High Isle
+	},
+	[1335] = 
+	{
+		[1318] = 16, -- Shipwreck Shoals --> High Isle
+	},
+	[1336] = 
+	{
+		[1318] = 18, -- Coral Cliffs --> High Isle
+	},
+	[1337] = 
+	{
+		[1318] = 11, -- Spire of the Crimson Coin --> High Isle
+	},
+	[1338] = 
+	{
+		[1318] = 12, -- Ghost Haven Bay --> High Isle
+	},
+	[1331] = 
+	{
+		[1318] = 15, -- Death's Valor Keep --> High Isle
+	},
+	[1370] = 
+	{
+		[1383] = 19, -- Castle Tonnere --> Galen
+	},
+	[1368] = 
+	{
+		[1383] = 2, -- Y'ffre's Path --> Galen
+	},
+	[1374] = 
+	{
+		[1383] = 5, -- Fauns' Thicket --> Galen
+	},
+	[1375] = 
+	{
+		[1383] = 4, -- Embervine --> Galen"
+	},
+	[1344] = 
+	{
+		[1318] = 40, -- Dreadsail Reef --> High Isle
+	},
+	[1378] = 
+	{
+		[1383] = 3, -- Steadfast Manor Cellars --> Galen
+	},
+	[1315] = 
+	{
+		[1318] = 56, -- Abhain Chapel Crypts --> High Isle
+	},
+	
+	[1389] = 
+	{
+		[41] = 70, -- Bal Sunnar --> Stonefalls"
+	},
+	[1390] = 
+	{
+		[103] = 64, -- Scrivener's Hall --> The Rift
+	},
+	[1360] = 
 	{
 		[1318] = 74, -- Earthen Root Enclave --> High Isle
 	},
-	[1361] =
+	[1361] = 
 	{
 		[1318] = 75, -- Graven Deep --> High Isle
 	},
-
-
+	[1380] = 
+	{
+		[1383] = 5, -- Garick's Rest Dungeons --> Galen
+	},
+	
+	--?
+	[1321] = 
+	{
+		[1318] = 2,-- Navire Dungeons --> High Isle"
+	},
+	[1381] = 
+	{
+		[1383] = 2,-- Y'ffre's Path Ruins --> Galen"
+	},
+	-- unmarked
+	[1383] = 
+	{
+		[1383] = 0,-- Galen --> Galen"
+	},
+	[1313] = 
+	{
+		[1318] = 0,-- Systres Sisters Vault --> High Isle"
+	},
+	[1379] = 
+	{
+		[1383] = 0,-- The Mad Maiden --> Galen"
+	},
+	[1316] = 
+	{
+		[1318] = 0,-- Old Coin Fort --> High Isle"
+	},
+	[1319] = 
+	{
+		[1318] = 0,-- Gonfalon Bay Outlaws Refuge --> High Isle"
+	},
+	[1320] = 
+	{
+		[1318] = 0,-- Tarnished Grotto --> High Isle"
+	},
+	[1322] = 
+	{
+		[1318] = 0,-- Mistmouth Cave --> High Isle"
+	},
+	[1327] = 
+	{
+		[1318] = 0,-- The Undergrove --> High Isle"
+	},
+	[1392] = 
+	{
+		[537] = 0,-- Shrine of the Golden Eye --> Khenarthi's Roost"
+	},
+	[1391] = 
+	{
+		[537] = 0,-- Emerald Glyphic Vault --> Khenarthi's Roost"
+	},
+	[1367] = 
+	{
+		[1383] = 0,-- Vastyr Outlaws Refuge --> Galen"
+	},
+	[1386] = 
+	{
+		[1383] = 0,-- Temple of Y'ffelon --> Galen"
+	},
+	[1369] = 
+	{
+		[1383] = 0,-- Dreadsail Sea Witch Sanctum --> Galen"
+	},
+	[1385] = 
+	{
+		[1383] = 0,-- Draoife Dell --> Galen"
+	},
+	[1371] = 
+	{
+		[1383] = 0,-- Vastyr Cathedral District --> Galen"
+	},
+	[1372] = 
+	{
+		[1383] = 0,-- Temple of Y'ffelon --> Galen"
+	},
+	[1373] = 
+	{
+		[1383] = 0,-- Mount Firesong --> Galen"
+	},
+	[1382] = 
+	{
+		[1383] = 0,-- All Flags Castle --> Galen"
+	},
+	[1318] = 
+	{
+		[1318] = 0, -- High Isle --> High Isle
+	},
+	-- add zones for api:######
+	-- unmarked?
+	
 	-- TODO: Investigate these locations.
 	[1366] =
 	{
@@ -2892,7 +3024,88 @@ lib.geoDataReferenceTable = {
 	{
 		[3] = 0, -- Eimhir's Cavern --> Glenumbra
 	},
-
+	
+	-- add zones for api:######
+	[1408] = 
+	{
+		[1414] = 4, -- Kemel-Ze --> Telvanni Peninsula
+	},
+	[1409] = 
+	{
+		[1413] = 7, -- The Sidereal Cloisters --> Apocrypha
+	},
+	[1410] = 
+	{
+		[1413] = 5, -- Cenotaph of the Remnants --> Apocrypha
+	},
+	[1415] = 
+	{
+		[1414] = 16, -- Gorne --> Telvanni Peninsula
+	},
+	[1416] = 
+	{
+		[1413] = 11, -- The Underweave --> Apocrypha
+	},
+	[1393] = 
+	{
+		[1413] = 20, -- The Tranquil Catalog --> Apocrypha
+	},
+	[1396] = 
+	{
+		[1414] = 1, -- Anchre Egg Mine --> Telvanni Peninsula
+	},
+	[1397] = 
+	{
+		[1414] = 2, -- Camonnaruhn --> Telvanni Peninsula
+	},
+	[1398] = 
+	{
+		[1413] = 9, -- Quires Wind --> Apocrypha
+	},
+	[1399] = 
+	{
+		[1413] = 10, -- The Disquiet Study --> Apocrypha
+	},
+	[1400] = 
+	{
+		[1413] = 13, -- Fathoms Drift --> Apocrypha
+	},
+	[1401] = 
+	{
+		[1413] = 12, -- Apogee of the Tormenting Eye --> Apocrypha
+	},
+	[1434] = 
+	{
+		[1414] = 29, -- Emissary's Enclave --> Telvanni Peninsula
+	},
+	[1403] = 
+	{
+		[1414] = 11, -- Tel Rendys --> Telvanni Peninsula
+	},
+	[1435] = 
+	{
+		[1383] = 33, -- The Fair Winds --> Galen
+	},
+	[1433] = 
+	{
+		[1414] = 28, -- Journey's End Lodgings --> Telvanni Peninsula
+	},
+	[1407] = 
+	{
+		[1414] = 6, -- Tel Dreloth --> Telvanni Peninsula
+	},
+	[1427] = 
+	{
+		[1414] = 19, -- Sanity's Edge --> Telvanni Peninsula
+	},
+	--?
+	[1404] = 
+	{
+		[1414] = 10, -- Tel Baro Cavern --> Telvanni Peninsula
+	},
+	
+	
+	
 	-- add zones for api:######
 	--[[
 	[zoneId] = {
@@ -2902,8 +3115,9 @@ lib.geoDataReferenceTable = {
 }
 
 
-
-
+--	/script LibZone:DebugVerifyGeoData()
+--	= (")(\d+)(.*),$
+-- \2,3
 --[[ Locate
 	During witches festival
 		Olyve's Brewery in Auridon,Glenumbra,Stonefalls
