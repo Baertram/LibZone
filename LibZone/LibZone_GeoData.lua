@@ -121,6 +121,12 @@ lib.adjustedParentZoneIds = {
 	[678] = 	584, -- Imperial City Prison -- > Imperial City
 	[688] = 	584, -- White-Gold Tower -- > Imperial City
 	[1209] = 	1208, -- Gloomreach -- > Blackreach: Arkthzand Cavern
+
+	--Apocrypha delves and pub dungeons should not show at Telvanni Peninsula
+	[1399] =   1413, -- The Disquiet Study -- > Apocrypha
+    [1400] =   1413, -- Quires Wind -- > Apocrypha
+    [1401] =   1413, -- Apogee of the Tormenting Eye -- > Apocrypha
+    [1416] =   1413, -- The Underweave -- > Apocrypha
 }
 
 -- Parent zoneIds which expand over multiple real zone IDs (like Ragnthar, the "virtual" Dwarven region which is located
@@ -3106,7 +3112,7 @@ lib.geoDataReferenceTable = {
 	
 	
 	
-	-- add zones for api:######
+	-- add zones for api:######Ich glaube
 	--[[
 	[zoneId] = {
 		[parentZoneId] = poiIndex or 0, -- zone Name -- > parent zone name
