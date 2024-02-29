@@ -31,7 +31,7 @@
 local libZone = {}
 --Addon/Library info
 libZone.name                    = "LibZone"
-libZone.version                 = 8.6
+libZone.version                 = 8.7
 libZone.author                  = "Baertram"
 libZone.url                     = "https://www.esoui.com/downloads/info2171-LibZone.html"
 
@@ -137,19 +137,19 @@ local translations = {
         ["libSlashCommanderMissing"] = "¡Instala la biblioteca 'LibSlashCommander'!",
         ["LibraryAlreadyLoaded"]            = "¡La biblioteca \'%s\' ya se ha cargado!",
     },
-    ["zh"] = {
-        ["de"]  = "German",
-        ["en"]  = "English",
-        ["fr"]  = "French",
-        ["jp"]  = "Japanese",
-        ["ru"]  = "Russian",
-        ["pl"]  = "Polish",
-        ["es"]  = "Spanish",
-        ["zh"]  = "Chinese",
-        ["slashCommandDescription"] = "Search translations of zone names",
-        ["slashCommandDescriptionClient"] = "Search zone names (game client language)",
-        ["libSlashCommanderMissing"] = "Please install library 'LibSlashCommander'!",
-        ["LibraryAlreadyLoaded"]            = "Library \'%s\' has already been loaded!",
+    ["zh"] = { --by Lykeion, 2024029
+        ["de"]  = "德文",
+        ["en"]  = "英文",
+        ["fr"]  = "法文",
+        ["jp"]  = "日文",
+        ["ru"]  = "俄文",
+        ["pl"]  = "波兰文",
+        ["es"]  = "西班牙文",
+        ["zh"]  = "中文",
+        ["slashCommandDescription"] = "搜索区域名称的翻译",
+        ["slashCommandDescriptionClient"] = "搜索区域名称 (游戏客户端语言)",
+        ["libSlashCommanderMissing"] = "请安装运行库 'LibSlashCommander'!",
+        ["LibraryAlreadyLoaded"]            = "运行库 \'%s\' 已加载!",
     },
 
     --Special client languages
