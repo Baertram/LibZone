@@ -1,10 +1,10 @@
 ﻿## Title: LibZone
 ## Description: Collects and provides zone information from the available zones/subzones ingame. Fixes for geographical zone parents
 ## Author: Baertram
-## AddOnVersion: 089
-## Version: 8.9
-## APIVersion: 101041 101042
-## SavedVariables: LibZone_SV_Data LibZone_Localized_SV_Data LibZone_GeoDebug_SV_Data
+## AddOnVersion: 0892
+## Version: 8.92
+## APIVersion: 101044 101045
+## SavedVariables: LibZone_SV_Data LibZone_Localized_SV_Data LibZone_GeoDebug_SV_Data LibZone_Debug_SV_Data
 ## OptionalDependsOn: LibSlashCommander>=36
 ## IsLibrary: true
 

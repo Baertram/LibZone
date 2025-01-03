@@ -31,7 +31,7 @@
 local libZone = {}
 --Addon/Library info
 libZone.name                    = "LibZone"
-libZone.version                 = 8.9
+libZone.version                 = 8.92
 libZone.author                  = "Baertram"
 libZone.url                     = "https://www.esoui.com/downloads/info2171-LibZone.html"
 
@@ -39,8 +39,10 @@ libZone.url                     = "https://www.esoui.com/downloads/info2171-LibZ
 libZone.svDataName              = "LibZone_SV_Data"
 libZone.svLocalizedDataName     = "LibZone_Localized_SV_Data"
 libZone.svGeoDebugDataName		= "LibZone_GeoDebug_SV_Data"
+libZone.svDebugDataName		    = "LibZone_Debug_SV_Data"
 libZone.svVersion               = libZone.version -- Changing this will reset the SavedVariables!
 libZone.svDataTableName         = "ZoneData"
+libZone.svMissingZoneDataTableName = "MissingZoneData"
 
 local libraryName = libZone.name
 local clientLang = GetCVar("language.2")
