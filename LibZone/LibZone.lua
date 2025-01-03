@@ -1117,21 +1117,24 @@ local function didAPIVersionChangeCheck()
     local currentAPIVersion = lib.currentAPIVersion
     lib.currentClientLanguage = lib.currentClientLanguage or GetCVar("language.2")
     clientLang = lib.currentClientLanguage
+
     local lastCheckedZoneAPIVersion
     local lastCheckedZoneAPIVersionOfAllLanguages = lib.zoneData.__lastZoneCheckAPIVersion__
-    local lastCheckedZoneAPIVersionOfClientLanguage = lastCheckedZoneAPIVersionOfAllLanguages ~= nil and lastCheckedZoneAPIVersionOfAllLanguages[clientLang]
+    local lastCheckedZoneAPIVersionOfClientLanguage = (lastCheckedZoneAPIVersionOfAllLanguages ~= nil and lastCheckedZoneAPIVersionOfAllLanguages[clientLang]) or nil
     if lastCheckedZoneAPIVersionOfClientLanguage ~= nil then
-        local lastAPIVersionCheckedNumber = #lastCheckedZoneAPIVersionOfClientLanguage
-        if lastAPIVersionCheckedNumber == nil or lastAPIVersionCheckedNumber == 0 then lastAPIVersionCheckedNumber = NonContiguousCount(lastCheckedZoneAPIVersionOfClientLanguage) end
+        local debugInfoOfLastCheckedZoneAPIVersionOfClientLanguage = lastCheckedZoneAPIVersionOfClientLanguage.__debugInfo__
+        if debugInfoOfLastCheckedZoneAPIVersionOfClientLanguage ~= nil then
+            local lastAPIVersionCheckedNumber = #debugInfoOfLastCheckedZoneAPIVersionOfClientLanguage
+            if lastAPIVersionCheckedNumber == nil or lastAPIVersionCheckedNumber == 0 then lastAPIVersionCheckedNumber = NonContiguousCount(debugInfoOfLastCheckedZoneAPIVersionOfClientLanguage) end
 
-        if lastAPIVersionCheckedNumber ~= nil and lastAPIVersionCheckedNumber > 0 then
-            local lastAPIVersionCheckedData = lastCheckedZoneAPIVersionOfClientLanguage[lastAPIVersionCheckedNumber]
-            lastCheckedZoneAPIVersion = (lastAPIVersionCheckedData ~= nil and (lastAPIVersionCheckedData.APIVersionLastUpdate or lastAPIVersionCheckedData.APIVersion)) or nil
+            if lastAPIVersionCheckedNumber ~= nil and lastAPIVersionCheckedNumber > 0 then
+                local lastAPIVersionCheckedData = debugInfoOfLastCheckedZoneAPIVersionOfClientLanguage[lastAPIVersionCheckedNumber]
+                lastCheckedZoneAPIVersion = (lastAPIVersionCheckedData ~= nil and (lastAPIVersionCheckedData.APIVersionLastUpdate or lastAPIVersionCheckedData.APIVersion)) or nil
+            end
         end
-
     end
 
-d("[LibZone]didAPIVersionChangeCheck - lastCheckedZoneAPIVersion: " .. tostring(lastCheckedZoneAPIVersion))
+--d("[LibZone]didAPIVersionChangeCheck - lastCheckedZoneAPIVersion: " .. tostring(lastCheckedZoneAPIVersion))
     return currentAPIVersion, lastCheckedZoneAPIVersion
 end
 
@@ -1154,7 +1157,7 @@ local function OnLibraryLoaded(event, name)
         --Did the API version change since last zoneID check? Then rebuild the zoneIDs now!
         local currentAPIVersion, lastCheckedZoneAPIVersion = didAPIVersionChangeCheck()
         local forceZoneIdUpdateDueToAPIChange = (lastCheckedZoneAPIVersion == nil or lastCheckedZoneAPIVersion ~= currentAPIVersion) or false
-d("[LibZone]forceZoneIdUpdateDueToAPIChange: " .. tostring(forceZoneIdUpdateDueToAPIChange))
+--d("[LibZone]forceZoneIdUpdateDueToAPIChange: " .. tostring(forceZoneIdUpdateDueToAPIChange))
 
 
         --Get localized (client language) zone data and add missing delta to SavedVariables table LibZone_Localized_SV_Data[clientLang] (No reloadui!)
