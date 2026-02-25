@@ -173,7 +173,7 @@ end
 --+ the current zone's index and parent zone index
 --> Returns: number currentZoneId, number currentZoneParentId, number currentZoneIndex, number currentZoneParentIndex, number mapId, number mapIndex, number parentMapId
 function lib:GetCurrentZoneIds()
-    local currentZoneIndex = GetCurrentMapZoneIndex()
+    local currentZoneIndex = GetUnitZoneIndex("player") --GetCurrentMapZoneIndex() -> this might return the currently opened worldmap's zoneIndex and thus be wrong!
     local currentZoneId = GetZoneId(currentZoneIndex)
     local currentZoneParentId = GetParentZoneId(currentZoneId)
     local currentZoneParentIndex = GetZoneIndex(currentZoneParentId)
@@ -1168,7 +1168,9 @@ local function OnLibraryLoaded(event, name)
 
         --Optional: Build the LibSlashCommander autocomplete stuff, if LibSlashCommander is present and activated
         -->See file LibZone_AutoCompletion.lua
-        lib:buildLSCZoneSearchAutoComplete()
+        if not IsConsoleUI() then --Do not load on Consoles
+            lib:buildLSCZoneSearchAutoComplete()
+        end
     end
 end
 

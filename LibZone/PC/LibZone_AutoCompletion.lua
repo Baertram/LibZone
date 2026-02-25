@@ -43,6 +43,10 @@ local checkIfLanguageIsSupported = lib.checkIfLanguageIsSupported
 -- 	Library - Chat autocomplete functions (using LibSlashCommander)
 ------------------------------------------------------------------------
 
+--Do not load on console
+if IsConsoleUI() then return end --Should not be needed as PC folder is used, but who knows
+
+
 --Build the autocompletion entries for zoneNames for a given language.
 --You need to use the chat slash command for the current client language /lzt or for a desired target language /lzt<language>.
 --You'll have to enter a space and then the zone name of the language e.g. Shadowfen.
