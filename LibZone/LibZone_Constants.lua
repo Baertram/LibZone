@@ -31,7 +31,7 @@
 local libZone = {}
 --Addon/Library info
 libZone.name                    = "LibZone"
-libZone.version                 = 8.98
+libZone.version                 = 8.99
 libZone.author                  = "Baertram"
 libZone.url                     = "https://www.esoui.com/downloads/info2171-LibZone.html"
 
@@ -62,6 +62,11 @@ local supportedLanguages = {
     [7] = "es",
     [8] = "zh",
 }
+local supportedLanguagesLookup = {}
+for _, lang in ipairs(supportedLanguages) do
+    supportedLanguagesLookup[lang] = true
+end
+
 
 --Translations for this library
 local translations = {
@@ -190,10 +195,7 @@ local translations = {
 --Check if the language is supported
 local function checkIfLanguageIsSupported(lang)
     if lang == nil then return false end
-    for _, langIsSupported in ipairs(supportedLanguages) do
-        if lang == langIsSupported then return true end
-    end
-    return false
+    return supportedLanguagesLookup[lang] or false
 end
 
 ------------------------------------------------------------------------
@@ -241,6 +243,7 @@ lib.maxMapIds = 3500 -- Currently there are around 2100 -> API101031 Waking Flam
 --Language and translation
 lib.currentClientLanguage = clientLang
 lib.supportedLanguages = supportedLanguages
+lib.supportedLanguagesLookup = supportedLanguagesLookup
 lib.translations = translations
 
 

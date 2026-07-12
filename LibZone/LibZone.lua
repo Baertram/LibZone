@@ -193,16 +193,18 @@ local getCurrentZoneIds = lib.GetCurrentZoneIds
 -->reBuildNew: Boolean [true=Rebuild the zoneData for all zones, even if they already exist / false=Skip already existing zoneIds]
 -->doReloadUI: Boolean [true=If at least one zoneId was added/updated, do a ReloadUI() at the end to update the SavaedVariables now / false=No autoamtic ReloadUI()]
 function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
+    local doDebug = true -- todo disable again after testing
     reBuildNew = reBuildNew or false
     doReloadUI = doReloadUI or false
 
     --Client language
     local lang = lib.currentClientLanguage
     if lang == nil then return false end
---d("[LibZone]GetAllZoneDataById, reBuildNew: " ..tostring(reBuildNew) .. ", doReloadUI: " ..tostring(doReloadUI) .. ", lang: " .. tostring(lang))
+    if doDebug then d("[LibZone]GetAllZoneDataById, reBuildNew: " ..tostring(reBuildNew) .. ", doReloadUI: " ..tostring(doReloadUI) .. ", lang: " .. tostring(lang)) end
     --Maximum of ZoneIds to check
     checkMaxZoneIndicesAndIds()
     local maxZoneIndices = lib.maxZoneIndices
+    if doDebug then d(">maxZoneIndx: " ..tostring(maxZoneIndices) ..", maxZoneIds: " ..tostring(lib.maxZoneIds)) end
     assert(maxZoneIndices ~= nil, "[\'" .. libraryName .. "\':GetAllZoneDataById]Error: Missing maxZoneIndices!")
     --Local SavedVariable data
     local zoneData = lib.zoneData
@@ -221,34 +223,36 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
         languageIsMissingInTotal = true
     end
 
---d(">languageIsMissingInTotal: " ..tostring(languageIsMissingInTotal))
+    if doDebug then d(">'".. tostring(lang).."', languageIsMissingInTotal: " ..tostring(languageIsMissingInTotal)) end
     --Loop over all zone Ids and get it's data + name
     local addedAtLeastOne = false
     for zoneIndexOfZoneId=0, maxZoneIndices do
         local zoneId = GetZoneId(zoneIndexOfZoneId)
         if zoneId and zoneIndexOfZoneId and zoneIndexOfZoneId ~= 1 then -- zoneIndex 1 is for all the zones which got no name (hopefully)
---d(">>Checking zoneId: " ..tostring(zoneId) .. ", preloadedZoneNamesTable[zoneId]: " .. tostring(preloadedZoneNamesTable[zoneId]) .. ", zoneIndexOfZoneId: " ..tostring(zoneIndexOfZoneId))
+            if doDebug then d(">>Checking zoneId: " ..tostring(zoneId) .. ", preloadedZoneNamesTable[zoneId]: " .. tostring(preloadedZoneNamesTable[zoneId]) .. ", zoneIndexOfZoneId: " ..tostring(zoneIndexOfZoneId)) end
             local wasCreatedNew = false
             --local zoneIndexOfZoneId = GetZoneIndex(zoneId)
             --The preloaded zoneNames for the language is missing in total or the zoneName for the curent zoneId is missing?
             if languageIsMissingInTotal or (preloadedZoneNamesTable ~= nil and preloadedZoneNamesTable[zoneId] == nil) then
                 --Get the "delta" zoneName now and add it to the SavedVariables localizedZoneData -> LibZone_Localized_SV_Data[lang][zoneId]
                 local zoneName = GetZoneNameById(zoneId)
-                if zoneName and zoneName ~= "" then
-                    if localizedZoneDataSV == nil then
-                        lib.localizedZoneData[lang] = {}
-                        localizedZoneDataSV = lib.localizedZoneData[lang]
-                    end
-                    local zoneNameFormatted = ZO_CachedStrFormat("<<C:1>>", zoneName)
-                    localizedZoneDataSV[zoneId] = zoneNameFormatted
-                    wasCreatedNew = true
---d(">zoneId " .. tostring(zoneId) .. "/" ..tostring(zoneIndexOfZoneId) .." (" .. tostring(zoneNameFormatted) .. ") not in SVs - Added for lang " .. tostring(lang))
+                if zoneName == nil or zoneName == "" then
+                    if doDebug then d(">zoneId " .. tostring(zoneId) .. "/" ..tostring(zoneIndexOfZoneId) .." missing, but no zoenName found!") end
+                    zoneName = "n/a"
                 end
+                if localizedZoneDataSV == nil then
+                    lib.localizedZoneData[lang] = {}
+                    localizedZoneDataSV = lib.localizedZoneData[lang]
+                end
+                local zoneNameFormatted = ZO_CachedStrFormat("<<C:1>>", zoneName)
+                localizedZoneDataSV[zoneId] = zoneNameFormatted
+                wasCreatedNew = true
+                if doDebug then d(">zoneId " .. tostring(zoneId) .. "/" ..tostring(zoneIndexOfZoneId) .." (" .. tostring(zoneNameFormatted) .. ") not in SVs - Added for lang " .. tostring(lang)) end
             else
                 --Check if the actual scanned zoneId is still in the SavedVariables and remove it there then
                 if localizedZoneDataSV ~= nil and localizedZoneDataSV[zoneId] ~= nil then
                     lib.localizedZoneData[lang][zoneId] = nil
---d("<zoneId " .. tostring(zoneId) .. " was still in the localized SVs, and got removed")
+                    if doDebug then d("<zoneId " .. tostring(zoneId) .. " was still in the localized SVs, and got removed") end
                 end
             end
 
@@ -257,7 +261,7 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
                 if zoneData[zoneId] == nil then
                     zoneData[zoneId] = {}
                     wasCreatedNew = true
---d(">>zoneData for zoneId " .. tostring(zoneId) .. " was added new...")
+                    if doDebug then d(">>zoneData for zoneId " .. tostring(zoneId) .. " was added new...") end
                 end
                 local zoneDataForId = zoneData[zoneId]
                 --Set zone index
@@ -274,8 +278,8 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
         end
     end --for zoneIndexOfZoneId=0, maxZoneIndices do
 
-	-- Clear poiDataTable
-	poiDataTable = nil
+    -- Clear poiDataTable
+    poiDataTable = nil
 
     --Was at least one zoneId added/changed?
     if addedAtLeastOne then
@@ -289,7 +293,7 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
         --and add a timestamp
         if localizedZoneDataSV then
             addDebugInfoSubTable(localizedZoneDataSV)
---d(">>>added the APIversion and timestamp at the end!")
+            if doDebug then d(">>>added the APIversion " .. tostring(lib.currentAPIVersion) .. " and current timestamp at the end!") end
         end
 
         if doReloadUI == true then ReloadUI() end
