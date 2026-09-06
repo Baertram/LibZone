@@ -1,24 +1,65 @@
 --[========================================================================[
-    This is free and unencumbered software released into the public domain.
-    Anyone is free to copy, modify, publish, use, compile, sell, or
-    distribute this software, either in source code form or as a compiled
-    binary, for any purpose, commercial or non-commercial, and by any
-    means.
-    In jurisdictions that recognize copyright laws, the author or authors
-    of this software dedicate any and all copyright interest in the
-    software to the public domain. We make this dedication for the benefit
-    of the public at large and to the detriment of our heirs and
-    successors. We intend this dedication to be an overt act of
-    relinquishment in perpetuity of all present and future rights to this
-    software under copyright law.
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-    IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-    OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-    ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-    OTHER DEALINGS IN THE SOFTWARE.
-    For more information, please refer to <http://unlicense.org/>
+PROPRIETARY LICENSE AGREEMENT
+
+Copyright (c) 2026 Baertram (baertram.esoui@gmx.net). All rights reserved.
+
+TERMS AND CONDITIONS
+
+1. STRICT RESTRICTIONS
+Except as explicitly permitted in Section 2 (Exclusive Website Hosting Exception) and Section 4 (What Is Allowed),
+any and all users are strictly prohibited from doing any of the following without prior written consent from the
+Copyright Holder:
+- Copying, duplicating, or replicating this software or any part of its source code.
+- Modifying, altering, transforming, or creating derivative works based upon this software.
+- Redistributing, publishing, hosting, or releasing this software or any versions of it on any platform, website, server,
+  or network.
+
+2. EXCLUSIVE WEBSITE HOSTING EXCEPTION
+The website www.esoui.com and its direct operational infrastructure (e.g. Minion, the addon manager) are granted the
+permission to host, display, and distribute this software UNCHANGED ("as is") for end-user download.
+In addition, the website mods.bethesda.net/en/elderscrollsonline/ (any language) and its direct operational infrastructure
+(e.g. ingame console addons manager) are granted the permission to host, display, and distribute this software UNCHANGED
+("as is") for console end-user download.
+
+This exception does NOT grant any rights to individual users, third parties, or other websites to copy, redistribute,
+or modify the software outside of the terms specified in this agreement.
+All other third-party redistribution remains strictly prohibited.
+
+3. PRIOR WRITTEN CONSENT REQUIRED
+If you wish to copy, modify, distribute, or host this software under any circumstances not covered by the exceptions
+in Section 2 or Section 4, you must contact the Copyright Holder (Baertram) directly and obtain explicit, written
+approval PRIOR to taking any action.
+
+Requests for permission must be sent via email to: baertram.esoui@gmx.net
+
+4. WHAT IS ALLOWED
+Notwithstanding the restrictions in Section 1, you are permitted to:
+- Distribute the software unchanged together with other Elder Scrolls Online addons.
+- Use the software from other Elder Scrolls Online addons via its provided API (Application Programming Interface), if
+  any such API exists.
+- Fork the software on collaborative tools (e.g. GitHub), provided that the software repository is publicly accessible,
+  and contribute to it (fixing bugs, adding new features). Each contribution will be reviewed by the software owner,
+  and may be integrated into the official software or not at the owner's sole discretion.
+
+4. WHAT IS ALLOWED
+Notwithstanding the restrictions in Section 1, you are permitted to:
+- Distribute the software unchanged together with other Elder Scrolls Online addons.
+- Use the software as is, or use the software's provided API (Application Programming Interface), if any such API exists,
+  from other Elder Scrolls Online addons.
+- Fork the software on collaborative tools (e.g. GitHub), provided that the software repository is publicly accessible,
+  ONLY for the purpose of contributing to the original project (fixing bugs, adding new features) via merge/pull requests.
+  Each contribution will be reviewed by the software owner, and may be integrated into the official software or not
+  at the owner's sole discretion.
+  Publicly hosting or distributing these forks, or any copies of the github repositories or it's files as standalone or
+  separate projects is strictly prohibited.
+
+
+5. NO WARRANTY
+THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 --]========================================================================]
 
 LibZone = LibZone or {}
@@ -29,6 +70,10 @@ local libraryName = libZone.name
 
 local apiVersion = lib.currentAPIVersion
 local clientLang = lib.currentClientLanguage
+
+--local helper variables
+local tos = tostring
+local table = table
 
 --For SV update
 local isAddonDevOfLibZone = (GetDisplayName() == '@Baertram' and true) or false
@@ -46,6 +91,7 @@ local adjustedParentMultiZoneIds
 local getZoneData
 local getZoneName
 
+local wasZoneDataReadyCheckDoneOnce = false
 
 ------------------------------------------------------------------------
 -- 	Helper functions
@@ -94,7 +140,7 @@ local function librarySavedVariables()
     local defaultZoneData = {}
     --ZO_SavedVars:NewAccountWide(savedVariableTable, version, namespace, defaults, profile, displayName)
     -->Save to "$AllAccounts" so the data is only once in the SavedVariables for all accounts, on each server!
-    lib.zoneData            = ZO_SavedVars:NewAccountWide(libZone.svDataName,           svVersion, svDataTableName,             defaultZoneData,    worldName, "$AllAccounts")
+    lib.SVzoneData          = ZO_SavedVars:NewAccountWide(libZone.svDataName,           svVersion, svDataTableName,             defaultZoneData,    worldName, "$AllAccounts")
     lib.localizedZoneData   = ZO_SavedVars:NewAccountWide(libZone.svLocalizedDataName,  svVersion, svMissingZoneDataTableName,  defaultZoneData,    worldName, "$AllAccounts")
 	lib.geoDebugData		= ZO_SavedVars:NewAccountWide(libZone.svGeoDebugDataName,	svVersion, nil,                         nil,                worldName, "$AllAccounts")
 
@@ -105,15 +151,17 @@ local function librarySavedVariables()
 	--end
 end
 
---Write the __debugInfo__ subtable to the table passed in and keep exisitng table entreis so that we see a history when it was updated
-local function addDebugInfoSubTable(tabToAddTo, dateAndTimeFormatted)
+--Write the __debugInfo__ subtable to the table passed in
+local function addDebugInfoSubTable(tabToAddTo, dateAndTimeFormatted, lang)
     if tabToAddTo == nil then return end
     dateAndTimeFormatted = dateAndTimeFormatted or os.date("%c", GetTimeStamp())
-    tabToAddTo.__debugInfo__ = tabToAddTo.__debugInfo__ or {}
-    table.insert(tabToAddTo.__debugInfo__, {
-        LastUpdate = tostring(dateAndTimeFormatted),
-        APIVersionLastUpdate = lib.currentAPIVersion,
-    })
+    tabToAddTo.__debugInfo__ = {
+        __LastUpdate =              tos(dateAndTimeFormatted),
+        __APIVersionLastUpdate =    lib.currentAPIVersion,
+    }
+    if lang ~= nil then
+        tabToAddTo.__debugInfo__.__lang = lang
+    end
 end
 
 --The preloaded zoneNames table LibZone.preloadedZoneNames in file LibZone_Data.lua (other languages e.g.) will be enriched with new scanned data from
@@ -156,6 +204,31 @@ local function checkLanguagesZoneDataAndTransferFromSavedVariables()
     end
 end
 
+local function didAPIVersionChangeCheck()
+    local currentAPIVersion = lib.currentAPIVersion
+    lib.currentClientLanguage = lib.currentClientLanguage or GetCVar("language.2")
+    clientLang = lib.currentClientLanguage
+
+    local lastCheckedZoneAPIVersion
+    local lastCheckedZoneAPIVersionOfAllLanguages = lib.SVzoneData.__lastZoneCheckAPIVersion__
+    local lastCheckedZoneAPIVersionOfClientLanguage = (lastCheckedZoneAPIVersionOfAllLanguages ~= nil and lastCheckedZoneAPIVersionOfAllLanguages[clientLang]) or nil
+    if lastCheckedZoneAPIVersionOfClientLanguage ~= nil then
+        local debugInfoOfLastCheckedZoneAPIVersionOfClientLanguage = lastCheckedZoneAPIVersionOfClientLanguage.__debugInfo__
+        if debugInfoOfLastCheckedZoneAPIVersionOfClientLanguage ~= nil then
+            local lastAPIVersionCheckedNumber = #debugInfoOfLastCheckedZoneAPIVersionOfClientLanguage
+            if lastAPIVersionCheckedNumber == nil or lastAPIVersionCheckedNumber == 0 then lastAPIVersionCheckedNumber = NonContiguousCount(debugInfoOfLastCheckedZoneAPIVersionOfClientLanguage) end
+
+            if lastAPIVersionCheckedNumber ~= nil and lastAPIVersionCheckedNumber > 0 then
+                local lastAPIVersionCheckedData = debugInfoOfLastCheckedZoneAPIVersionOfClientLanguage[lastAPIVersionCheckedNumber]
+                lastCheckedZoneAPIVersion = (lastAPIVersionCheckedData ~= nil and (lastAPIVersionCheckedData.APIVersionLastUpdate or lastAPIVersionCheckedData.APIVersion)) or nil
+            end
+        end
+    end
+
+    --d("[LibZone]didAPIVersionChangeCheck - lastCheckedZoneAPIVersion: " .. tos(lastCheckedZoneAPIVersion))
+    return currentAPIVersion, lastCheckedZoneAPIVersion
+end
+
 ------------------------------------------------------------------------
 -- 	Library functions
 ------------------------------------------------------------------------
@@ -185,28 +258,30 @@ end
 local getCurrentZoneIds = lib.GetCurrentZoneIds
 
 --Check and get all zone's IDs (zoneId and parentZoneId) and save them to the library's table zoneData.
---Check which zoneNames are already preloaded into the libraries table LibZone.preloadedZoneNames. For the missing ones (compared to entries in just updated table zoneData.zoneId):
+--Check which zoneNames are already preloaded into the libraries table LibZone.preloadedZoneNames.
+--For the missing ones (compared to entries in just updated table zoneData.zoneId):
 ---Check and get the zone's name for the zone ID.
--- New added entries will be saved to the SavedVariables table LibZone_Localized_SV_Data so they will not be scanned again next time, but just read from there until they get
--- manually transfered to the LibZone.preloadedZoneNames table (as the library gets updated).
+---New added entries will be saved to the SavedVariables table LibZone_Localized_SV_Data so they will not be scanned again next time, but just read from there until they get
+---manually transfered to the LibZone.preloadedZoneNames table (as the library gets updated).
 --Parameters:
 -->reBuildNew: Boolean [true=Rebuild the zoneData for all zones, even if they already exist / false=Skip already existing zoneIds]
 -->doReloadUI: Boolean [true=If at least one zoneId was added/updated, do a ReloadUI() at the end to update the SavaedVariables now / false=No autoamtic ReloadUI()]
 function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
-    local doDebug = true -- todo disable again after testing
+d("[LibZone]GetAllZoneDataById")
+    local doDebug = false -- todo disable again after testing
     reBuildNew = reBuildNew or false
     doReloadUI = doReloadUI or false
 
     --Client language
     local lang = lib.currentClientLanguage
     if lang == nil then return false end
-    if doDebug then d("[LibZone]GetAllZoneDataById, reBuildNew: " ..tostring(reBuildNew) .. ", doReloadUI: " ..tostring(doReloadUI) .. ", lang: " .. tostring(lang)) end
+    if doDebug then d("[LibZone]GetAllZoneDataById, reBuildNew: " ..tos(reBuildNew) .. ", doReloadUI: " ..tos(doReloadUI) .. ", lang: " .. tos(lang)) end
     --Maximum of ZoneIds to check
     checkMaxZoneIndicesAndIds()
     local maxZoneIndices = lib.maxZoneIndices
-    if doDebug then d(">maxZoneIndx: " ..tostring(maxZoneIndices) ..", maxZoneIds: " ..tostring(lib.maxZoneIds)) end
+    if doDebug then d(">maxZoneIndx: " ..tos(maxZoneIndices) ..", maxZoneIds: " ..tos(lib.maxZoneIds)) end
     assert(maxZoneIndices ~= nil, "[\'" .. libraryName .. "\':GetAllZoneDataById]Error: Missing maxZoneIndices!")
-    --Local SavedVariable data
+    --Local zone data
     local zoneData = lib.zoneData
     if zoneData == nil then
         lib.zoneData = {}
@@ -214,7 +289,7 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
     end
     if zoneData == nil then return false end
 
-    --SavedVariables with either manually added zoneData of other langugaes, or to store new detected zoneIds missing in SV table lib.zoneData
+    --SavedVariables with either manually added zoneData of other languages, or to store new detected zoneIds missing in SV table lib.zoneData
     local localizedZoneDataSV = lib.localizedZoneData[lang]
     local preloadedZoneNamesTable = lib.preloadedZoneNames[lang]
     --The preloaded zoneData does not exist for the whole language
@@ -223,13 +298,13 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
         languageIsMissingInTotal = true
     end
 
-    if doDebug then d(">'".. tostring(lang).."', languageIsMissingInTotal: " ..tostring(languageIsMissingInTotal)) end
+    if doDebug then d(">'".. tos(lang).."', languageIsMissingInTotal: " ..tos(languageIsMissingInTotal)) end
     --Loop over all zone Ids and get it's data + name
     local addedAtLeastOne = false
     for zoneIndexOfZoneId=0, maxZoneIndices do
         local zoneId = GetZoneId(zoneIndexOfZoneId)
-        if zoneId and zoneIndexOfZoneId and zoneIndexOfZoneId ~= 1 then -- zoneIndex 1 is for all the zones which got no name (hopefully)
-            if doDebug then d(">>Checking zoneId: " ..tostring(zoneId) .. ", preloadedZoneNamesTable[zoneId]: " .. tostring(preloadedZoneNamesTable[zoneId]) .. ", zoneIndexOfZoneId: " ..tostring(zoneIndexOfZoneId)) end
+        if zoneId and zoneId ~= 0 and zoneIndexOfZoneId and zoneIndexOfZoneId ~= 1 then -- zoneIndex 1 is for all the zones which got no name (hopefully)
+            if doDebug then d(">>Checking zoneId: " ..tos(zoneId) .. ", preloadedZoneNamesTable[zoneId]: " .. tos(preloadedZoneNamesTable[zoneId]) .. ", zoneIndexOfZoneId: " ..tos(zoneIndexOfZoneId)) end
             local wasCreatedNew = false
             --local zoneIndexOfZoneId = GetZoneIndex(zoneId)
             --The preloaded zoneNames for the language is missing in total or the zoneName for the curent zoneId is missing?
@@ -237,7 +312,7 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
                 --Get the "delta" zoneName now and add it to the SavedVariables localizedZoneData -> LibZone_Localized_SV_Data[lang][zoneId]
                 local zoneName = GetZoneNameById(zoneId)
                 if zoneName == nil or zoneName == "" then
-                    if doDebug then d(">zoneId " .. tostring(zoneId) .. "/" ..tostring(zoneIndexOfZoneId) .." missing, but no zoenName found!") end
+                    if doDebug then d(">zoneId " .. tos(zoneId) .. "/" ..tos(zoneIndexOfZoneId) .." missing, but no zoneName found!") end
                     zoneName = "n/a"
                 end
                 if localizedZoneDataSV == nil then
@@ -247,21 +322,21 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
                 local zoneNameFormatted = ZO_CachedStrFormat("<<C:1>>", zoneName)
                 localizedZoneDataSV[zoneId] = zoneNameFormatted
                 wasCreatedNew = true
-                if doDebug then d(">zoneId " .. tostring(zoneId) .. "/" ..tostring(zoneIndexOfZoneId) .." (" .. tostring(zoneNameFormatted) .. ") not in SVs - Added for lang " .. tostring(lang)) end
+                if doDebug then d(">zoneId " .. tos(zoneId) .. "/" ..tos(zoneIndexOfZoneId) .." (" .. tos(zoneNameFormatted) .. ") not in SVs - Added for lang " .. tos(lang)) end
             else
                 --Check if the actual scanned zoneId is still in the SavedVariables and remove it there then
                 if localizedZoneDataSV ~= nil and localizedZoneDataSV[zoneId] ~= nil then
                     lib.localizedZoneData[lang][zoneId] = nil
-                    if doDebug then d("<zoneId " .. tostring(zoneId) .. " was still in the localized SVs, and got removed") end
+                    if doDebug then d("<zoneId " .. tos(zoneId) .. " was still in the localized SVs, and got removed") end
                 end
             end
 
-            --Update the real SavedVariables table with the detected zoneId, parentZoneId and zoneIndex -> If missing
+            --Update the zoneData table with the detected zoneId, parentZoneId and zoneIndex -> If missing
             if reBuildNew or wasCreatedNew then
                 if zoneData[zoneId] == nil then
                     zoneData[zoneId] = {}
                     wasCreatedNew = true
-                    if doDebug then d(">>zoneData for zoneId " .. tostring(zoneId) .. " was added new...") end
+                    if doDebug then d(">>zoneData for zoneId " .. tos(zoneId) .. " was added new...") end
                 end
                 local zoneDataForId = zoneData[zoneId]
                 --Set zone index
@@ -284,22 +359,47 @@ function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
     --Was at least one zoneId added/changed?
     if addedAtLeastOne then
         --Update the API version as the zoneIds check was done
-        lib.zoneData.__lastZoneCheckAPIVersion__ = lib.zoneData.__lastZoneCheckAPIVersion__ or {}
-        lib.zoneData.__lastZoneCheckAPIVersion__[lang] = lib.zoneData.__lastZoneCheckAPIVersion__[lang] or {}
-        addDebugInfoSubTable(lib.zoneData.__lastZoneCheckAPIVersion__[lang])
+        lib.SVzoneData.__lastZoneCheckAPIVersion__ = {}
+        addDebugInfoSubTable(lib.SVzoneData.__lastZoneCheckAPIVersion__, nil, lang)
 
         --Reload the UI now to update teh SavedVariables?t
         --Add the current API version to the language table so one knows when the data was collected,
         --and add a timestamp
         if localizedZoneDataSV then
             addDebugInfoSubTable(localizedZoneDataSV)
-            if doDebug then d(">>>added the APIversion " .. tostring(lib.currentAPIVersion) .. " and current timestamp at the end!") end
+            if doDebug then d(">>>added the APIversion " .. tos(lib.currentAPIVersion) .. " and current timestamp at the end!") end
         end
 
         if doReloadUI == true then ReloadUI() end
     end
+
+    --Directly calling LibZone:GetAllZoneDataById() as first API function?
+    -->Then add possibly missing (in preloaded) SavedVariables' detected zoneIds
+    if not wasZoneDataReadyCheckDoneOnce then
+        checkLanguagesZoneDataAndTransferFromSavedVariables()
+    end
 end
 local getAllZoneDataById = lib.GetAllZoneDataById
+
+local function zoneDataReadyCheckOnce()
+    d("[LibZone]zoneDataReadyCheckOnce- doneOnce: " ..tos(wasZoneDataReadyCheckDoneOnce))
+
+    if wasZoneDataReadyCheckDoneOnce then return end
+    wasZoneDataReadyCheckDoneOnce = true
+
+    --Did the API version change since last zoneID check? Then rebuild the zoneIDs now!
+    local currentAPIVersion, lastCheckedZoneAPIVersion = didAPIVersionChangeCheck()
+    local forceZoneIdUpdateDueToAPIChange = (lastCheckedZoneAPIVersion == nil or lastCheckedZoneAPIVersion ~= currentAPIVersion) or false
+    --d("[LibZone]forceZoneIdUpdateDueToAPIChange: " .. tos(forceZoneIdUpdateDueToAPIChange))
+
+
+    --Get localized (client language) zone data and add missing delta to SavedVariables table LibZone_Localized_SV_Data[clientLang] (No reloadui!)
+    getAllZoneDataById(lib, forceZoneIdUpdateDueToAPIChange, false)
+
+    --Do we have already datamined and localized zoneData given for languages? -> See SV table LibZone_Localized_SV_Data
+    -->Will be enriched within function getAllZoneDataById too, if any zoneIds are missing in SV table LibZone_SV_Data
+    checkLanguagesZoneDataAndTransferFromSavedVariables()
+end
 
 
 --Return the zoneData for all zones and all languages
@@ -310,6 +410,7 @@ local getAllZoneDataById = lib.GetAllZoneDataById
 --->    },
 --->}
 function lib:GetAllZoneData()
+    zoneDataReadyCheckOnce()
     return lib.preloadedZoneNames
 end
 
@@ -325,6 +426,7 @@ end
 --If no parent zone can be found the return value will be nil.
 function lib:GetZoneDataBySubZone(subZoneId, language)
     assert (subZoneId ~= nil, "[\'" .. libraryName .. "\':GetZoneDataBySubZone]Error: Missing SubZoneId!")
+    zoneDataReadyCheckOnce()
     language = language or lib.currentClientLanguage
     getZoneName = getZoneName or lib.GetZoneName
     local retParentZoneTable = {}
@@ -348,6 +450,7 @@ end
 -- }
 function lib:GetZoneData(zoneId, subZoneId, language)
     assert (zoneId ~= nil, "[\'" .. libraryName .. "\':GetZoneData]Error: Missing zoneId!")
+    zoneDataReadyCheckOnce()
     language = language or lib.currentClientLanguage
     local readZoneData, readSubZoneData
     local zoneData =  lib.zoneData
@@ -369,7 +472,7 @@ function lib:GetZoneData(zoneId, subZoneId, language)
             end
         end
     else
-        d("[\'".. libraryName .. "\':GetZoneData]Error: Missing zoneData for language \"" .. tostring(language) .. "\"!")
+        d("[\'".. libraryName .. "\':GetZoneData]Error: Missing zoneData for language \"" .. tos(language) .. "\"!")
     end
     return readZoneData, readSubZoneData
 end
@@ -380,18 +483,19 @@ getZoneData = lib.GetZoneData
 --Output zone informtaion to the chat, using the zoneId, subZoneId (connected to zoneId via parentZoneId) and the language (e.g. "en" or "fr")
 function lib:ShowZoneData(zoneId, subZoneId, language)
     assert (zoneId ~= nil, "[\'" .. libraryName .. "\':ShowZoneData]Error: Missing zoneId!")
+    zoneDataReadyCheckOnce()
     language = language or lib.currentClientLanguage
     local zoneIdData, subZoneIdData = getZoneData(lib, zoneId, subZoneId, language)
     if zoneIdData ~= nil then
-        d("[" .. libraryName .. "]ShowZoneData for zoneId \"".. tostring(zoneId) .. "\", subZoneId: \"".. tostring(subZoneId) .. "\", language: \"" .. tostring(language) .. "\"")
-        d(">Zone name: " .. tostring(zoneIdData.name))
-        if zoneIdData.zoneIndex ~= nil then d(">Zone index: " .. tostring(zoneIdData.zoneIndex)) end
+        d("[" .. libraryName .. "]ShowZoneData for zoneId \"".. tos(zoneId) .. "\", subZoneId: \"".. tos(subZoneId) .. "\", language: \"" .. tos(language) .. "\"")
+        d(">Zone name: " .. tos(zoneIdData.name))
+        if zoneIdData.zoneIndex ~= nil then d(">Zone index: " .. tos(zoneIdData.zoneIndex)) end
         if subZoneIdData ~= nil then
-            d(">>SubZone name: " .. tostring(subZoneIdData.name))
-            if subZoneIdData.zoneIndex ~= nil then d(">SubZone index: " .. tostring(subZoneIdData.zoneIndex)) end
+            d(">>SubZone name: " .. tos(subZoneIdData.name))
+            if subZoneIdData.zoneIndex ~= nil then d(">SubZone index: " .. tos(subZoneIdData.zoneIndex)) end
         end
     else
-        d("[\'" .. libraryName .. "\']ShowZoneData for zoneId \"".. tostring(zoneId) .. "\", subZoneId: \"".. tostring(subZoneId) .. "\"\nNo zone data was found for language \"" .. tostring(language) .. "\"!")
+        d("[\'" .. libraryName .. "\']ShowZoneData for zoneId \"".. tos(zoneId) .. "\", subZoneId: \"".. tos(subZoneId) .. "\"\nNo zone data was found for language \"" .. tos(language) .. "\"!")
     end
 end
 local showZoneData = lib.ShowZoneData
@@ -402,6 +506,7 @@ local showZoneData = lib.ShowZoneData
 --->Returns localized String of the zoneName
 function lib:GetZoneName(zoneId, language)
     assert(zoneId ~= nil, "[\'" .. libraryName .. "\':GetZoneName]Error: Missing zoneId!")
+    zoneDataReadyCheckOnce()
     language = language or lib.currentClientLanguage
     local localizedZoneIdData = lib.preloadedZoneNames[language]
     if localizedZoneIdData == nil then
@@ -430,6 +535,7 @@ getZoneName = lib.GetZoneName
 ---->returnTable[3] = "Glenumbra"
 function lib:GetZoneNamesByIds(zoneIdsTable, language)
     assert (zoneIdsTable ~= nil and type(zoneIdsTable) == "table", "[\'" .. libraryName .. "\':GetZoneNamesByIds]Error: Missing zoneId table.\nTable's format must be \"[number TableIndex] = number ZoneId,\"!")
+    zoneDataReadyCheckOnce()
     language = language or lib.currentClientLanguage
     local retNameTable = {}
     getZoneName = getZoneName or lib.GetZoneName
@@ -461,6 +567,7 @@ end
 ---->}
 function lib:GetZoneDataByIds(zoneIdsTable, language)
     assert (zoneIdsTable ~= nil and type(zoneIdsTable) == "table", "[\'" .. libraryName .. "\':GetZoneDataByIds]Error: Missing zoneId table.\nTable's format must be \"[number TableIndex] = number ZoneId,\"!")
+    zoneDataReadyCheckOnce()
     language = language or lib.currentClientLanguage
     local retZoneDataTable = {}
     getZoneData = getZoneData or lib.GetZoneData
@@ -484,19 +591,20 @@ function lib:GetZoneNameByLocalizedSearchString(searchStr, searchLanguage, retur
     assert (searchStr ~= nil and searchStr ~= "", "[\'" .. libraryName .. "\':GetZoneNameByLocalizedSearchString]Error: Missing parameter \"searchStr\"!")
     assert (returnLanguage ~= nil and type(returnLanguage) == "string", "[LibZone:GetZoneNameByLocalizedSearchString]Error: Missing or wrong parameter \"returnLanguage\"!")
     local langIsSupported = checkIfLanguageIsSupported(returnLanguage) or false
-    assert (langIsSupported == true, "[\'" .. libraryName .. "\':GetZoneNameByLocalizedSearchString]Error: Return language \"" .. tostring(returnLanguage) .. "\" is not supported!")
+    assert (langIsSupported == true, "[\'" .. libraryName .. "\':GetZoneNameByLocalizedSearchString]Error: Return language \"" .. tos(returnLanguage) .. "\" is not supported!")
     langIsSupported = false
     searchLanguage = searchLanguage or lib.currentClientLanguage
     --Disabled 2021-04-15, upon request of "SimonIllyan" here: https://www.esoui.com/downloads/info2171-LibZone.html#comments
     --assert (searchLanguage ~= returnLanguage, "[\'" .. libraryName .. "\':GetZoneNameByLocalizedSearchString]Error: Search language and returning language must be different!")
     langIsSupported = checkIfLanguageIsSupported(searchLanguage) or false
-    assert (langIsSupported == true, "[\'" .. libraryName .. "\':GetZoneNameByLocalizedSearchString]Error: Search language \"" .. tostring(searchLanguage) .. "\" is not supported!")
+    assert (langIsSupported == true, "[\'" .. libraryName .. "\':GetZoneNameByLocalizedSearchString]Error: Search language \"" .. tos(searchLanguage) .. "\" is not supported!")
+    zoneDataReadyCheckOnce()
     local retZoneIdsTable = {}
     local retZoneLocalizedZoneNamesTable = {}
     local localizedSearchZoneData = lib.preloadedZoneNames[searchLanguage]
-    assert (localizedSearchZoneData ~= nil, "[\'" .. libraryName .. "\':GetZoneNameByLocalizedSearchString]Error: Missing localized search zone data with language \"" .. tostring(searchLanguage) .. "\"!")
+    assert (localizedSearchZoneData ~= nil, "[\'" .. libraryName .. "\':GetZoneNameByLocalizedSearchString]Error: Missing localized search zone data with language \"" .. tos(searchLanguage) .. "\"!")
     local zoneReturnLocalizedData = lib.preloadedZoneNames[returnLanguage]
-    assert (zoneReturnLocalizedData ~= nil, "[\'" .. libraryName .. "\':GetZoneNameByLocalizedSearchString]Error: Missing localized return zone data with language \"" .. tostring(returnLanguage) .. "\"!")
+    assert (zoneReturnLocalizedData ~= nil, "[\'" .. libraryName .. "\':GetZoneNameByLocalizedSearchString]Error: Missing localized return zone data with language \"" .. tos(returnLanguage) .. "\"!")
     for zoneId, zoneName in pairs(localizedSearchZoneData) do
         if zoneName ~= "" and zo_plainstrfind(zoneName:lower(), searchStr:lower()) then
             table.insert(retZoneIdsTable, zoneId)
@@ -547,7 +655,7 @@ function lib:GetZoneNameByMapTexture(mapTileTextureName, patternToUse, chatOutpu
     regexData = {mapTileTextureNameLower:find(patternToUse)} --maps/([%w%-]+/[%w%-]+[%._][%w%-]+(_%d)?)
     local zoneName, subzoneName = regexData[4], regexData[5]
     if chatOutput == true then
-        d("["..libraryName.."]GetZoneNameByMapTexture\nzone: " ..tostring(zoneName) .. ", subZone: " .. tostring(subzoneName) .. "\nmapTileTexture: " .. tostring(mapTileTextureNameLower))
+        d("["..libraryName.."]GetZoneNameByMapTexture\nzone: " ..tos(zoneName) .. ", subZone: " .. tos(subzoneName) .. "\nmapTileTexture: " .. tos(mapTileTextureNameLower))
     end
     return zoneName, subzoneName, mapTileTextureNameLower, mapTileTextureName
 end
@@ -612,7 +720,7 @@ local function getCurrentZoneAndGroupStatus()
     --This wil only work if you are outside the PubDungeon, near it, where the map's POI is shown AND you are in the subzone of that map...
     --[[
     local zoneIndex, poiIndex = GetCurrentSubZonePOIIndices()
-    --d(string.format(">zoneIndex: %s, poiIndex: %s", tostring(zoneIndex), tostring(poiIndex)))
+    --d(string.format(">zoneIndex: %s, poiIndex: %s", tos(zoneIndex), tos(poiIndex)))
     local abort = false
     if zoneIndex == nil then
         abort = true
@@ -623,7 +731,7 @@ local function getCurrentZoneAndGroupStatus()
     if not abort then
         local _, _, _, iconPath = GetPOIMapInfo(zoneIndex, poiIndex)
         local iconPathLower = iconPath:lower()
-        --d(">iconPathLower: "..tostring(iconPathLower))
+        --d(">iconPathLower: "..tos(iconPathLower))
         if iconPathLower:find("poi_delve") then
             -- in a delve
             isInDelve = true
@@ -643,7 +751,7 @@ local function getCurrentZoneAndGroupStatus()
         end
     end
     ]]
-    --d("[LibZone.getCurrentZoneAndGroupStatus] PvP: " .. tostring(isInPVP) .. ", Delve: " .. tostring(isInDelve) .. ", PubDun: " .. tostring(isInPublicDungeon) .. ", GroupDun: " .. tostring(isInGroupDungeon) .. ", inGroup: " .. tostring(isInGroup) .. ", groupSize: " .. groupSize)
+    --d("[LibZone.getCurrentZoneAndGroupStatus] PvP: " .. tos(isInPVP) .. ", Delve: " .. tos(isInDelve) .. ", PubDun: " .. tos(isInPublicDungeon) .. ", GroupDun: " .. tos(isInGroupDungeon) .. ", inGroup: " .. tos(isInGroup) .. ", groupSize: " .. groupSize)
     return isInPVP, isInDelve, isInPublicDungeon, isInGroupDungeon, isInRaid, isInGroup, groupSize
 end
 
@@ -1055,7 +1163,7 @@ function lib:DebugGetAllZoneDataNew(doReloadUI)
     checkMaxZoneIndicesAndIds()
     local maxZoneIndices = lib.maxZoneIndices
     d(">=============================================>")
-    d("["..libraryName.."]DebugGetAllZoneDataNew, doReloadUI: " ..tostring(doReloadUI) .. ", lang: " .. tostring(lang) .. ", maxZoneIndices: " .. tostring(maxZoneIndices))
+    d("["..libraryName.."]DebugGetAllZoneDataNew, doReloadUI: " ..tos(doReloadUI) .. ", lang: " .. tos(lang) .. ", maxZoneIndices: " .. tos(maxZoneIndices))
     assert(maxZoneIndices ~= nil, "[\'" .. libraryName .. "\':DebugGetAllZoneDataNew]Error: Missing maxZoneIndices!")
 
     --Prepare SavedVariables
@@ -1077,14 +1185,14 @@ function lib:DebugGetAllZoneDataNew(doReloadUI)
         loopCounter = loopCounter + 1
         local zoneId = GetZoneId(zoneIndexOfZoneId)
         if zoneId and zoneIndexOfZoneId and zoneIndexOfZoneId ~= 1 then -- zoneIndex 1 is for all the zones which got no name (hopefully)
-            --d(">>Checking zoneId: " ..tostring(zoneId) .. ", preloadedZoneNamesTable[zoneId]: " .. tostring(preloadedZoneNamesTable[zoneId]) .. ", zoneIndexOfZoneId: " ..tostring(zoneIndexOfZoneId))
+            --d(">>Checking zoneId: " ..tos(zoneId) .. ", preloadedZoneNamesTable[zoneId]: " .. tos(preloadedZoneNamesTable[zoneId]) .. ", zoneIndexOfZoneId: " ..tos(zoneIndexOfZoneId))
             local zoneName = GetZoneNameById(zoneId)
             if zoneName and zoneName ~= "" then
                 local formattedZoneName = ZO_CachedStrFormat("<<C:1>>", zoneName)
                 if svDebugDataOfLang[zoneId] == nil or svDebugDataOfLang[zoneId] ~= formattedZoneName then
                     svDebugDataOfLang[zoneId] = formattedZoneName
                     addedCounter = addedCounter + 1
-                    d("> ZoneID " .. tostring(zoneId) .. " added: \'" .. tostring(formattedZoneName) .. "\'")
+                    d("> ZoneID " .. tos(zoneId) .. " added: \'" .. tos(formattedZoneName) .. "\'")
                 end
             end
         end
@@ -1099,15 +1207,15 @@ function lib:DebugGetAllZoneDataNew(doReloadUI)
 
         addDebugInfoSubTable(svDebugDataOfLang)
 
-        d(">> " .. tostring(loopCounter) .. " zoneIds checked:")
-        d(">> Added " .. tostring(addedCounter) .. " zoneIds to the SV table \'" .. tostring(libZone.svDebugDataName) .. "[" .. tostring(lang) .. "]\'")
-        d(">>> Count of entries before: " .. tostring(countBefore) .." / Total count of entries now: " ..tostring(totalCount))
+        d(">> " .. tos(loopCounter) .. " zoneIds checked:")
+        d(">> Added " .. tos(addedCounter) .. " zoneIds to the SV table \'" .. tos(libZone.svDebugDataName) .. "[" .. tos(lang) .. "]\'")
+        d(">>> Count of entries before: " .. tos(countBefore) .." / Total count of entries now: " ..tos(totalCount))
         d("<=============================================<")
 
         if doReloadUI == true then ReloadUI() end
     else
-        d("<< " .. tostring(loopCounter) .. " zoneIds checked: No new zoneId/name pairs found for language " .. tostring(lang))
-        d("<< Got " .. tostring(countBefore) .. " zoneIds in the SV table \'" .. tostring(libZone.svDebugDataName) .. "[" .. tostring(lang) .. "]\'")
+        d("<< " .. tos(loopCounter) .. " zoneIds checked: No new zoneId/name pairs found for language " .. tos(lang))
+        d("<< Got " .. tos(countBefore) .. " zoneIds in the SV table \'" .. tos(libZone.svDebugDataName) .. "[" .. tos(lang) .. "]\'")
         d("<=============================================<")
     end
 end
@@ -1117,66 +1225,31 @@ end
 ------------------------------------------------------------------------
 -- 	Addon/Librray load functions
 ------------------------------------------------------------------------
-local function didAPIVersionChangeCheck()
-    local currentAPIVersion = lib.currentAPIVersion
-    lib.currentClientLanguage = lib.currentClientLanguage or GetCVar("language.2")
-    clientLang = lib.currentClientLanguage
 
-    local lastCheckedZoneAPIVersion
-    local lastCheckedZoneAPIVersionOfAllLanguages = lib.zoneData.__lastZoneCheckAPIVersion__
-    local lastCheckedZoneAPIVersionOfClientLanguage = (lastCheckedZoneAPIVersionOfAllLanguages ~= nil and lastCheckedZoneAPIVersionOfAllLanguages[clientLang]) or nil
-    if lastCheckedZoneAPIVersionOfClientLanguage ~= nil then
-        local debugInfoOfLastCheckedZoneAPIVersionOfClientLanguage = lastCheckedZoneAPIVersionOfClientLanguage.__debugInfo__
-        if debugInfoOfLastCheckedZoneAPIVersionOfClientLanguage ~= nil then
-            local lastAPIVersionCheckedNumber = #debugInfoOfLastCheckedZoneAPIVersionOfClientLanguage
-            if lastAPIVersionCheckedNumber == nil or lastAPIVersionCheckedNumber == 0 then lastAPIVersionCheckedNumber = NonContiguousCount(debugInfoOfLastCheckedZoneAPIVersionOfClientLanguage) end
-
-            if lastAPIVersionCheckedNumber ~= nil and lastAPIVersionCheckedNumber > 0 then
-                local lastAPIVersionCheckedData = debugInfoOfLastCheckedZoneAPIVersionOfClientLanguage[lastAPIVersionCheckedNumber]
-                lastCheckedZoneAPIVersion = (lastAPIVersionCheckedData ~= nil and (lastAPIVersionCheckedData.APIVersionLastUpdate or lastAPIVersionCheckedData.APIVersion)) or nil
-            end
-        end
-    end
-
---d("[LibZone]didAPIVersionChangeCheck - lastCheckedZoneAPIVersion: " .. tostring(lastCheckedZoneAPIVersion))
-    return currentAPIVersion, lastCheckedZoneAPIVersion
-end
 
 --Addon loaded function
 local function OnLibraryLoaded(event, name)
     --Only load lib if ingame
-    if name:find("^ZO_") then return end
-    if name == libraryName then
-        EVENT_MANAGER:UnregisterForEvent(libraryName, EVENT_ADD_ON_LOADED)
+    if name ~= libraryName then return end
+    EVENT_MANAGER:UnregisterForEvent(libraryName, EVENT_ADD_ON_LOADED)
 
-        --Get the maximum possible zoneIndex and zoneId
-        checkMaxZoneIndicesAndIds()
+    --Get the maximum possible zoneIndex and zoneId
+    checkMaxZoneIndicesAndIds()
 
-        --Geo reference: pointer to the table
-		geoDataReferenceTable = lib.geoDataReferenceTable
+    --Geo reference: pointer to the table
+    geoDataReferenceTable = lib.geoDataReferenceTable
 
-        --Load SavedVariables
-        librarySavedVariables()
+    --Load SavedVariables
+    librarySavedVariables()
 
-        --Did the API version change since last zoneID check? Then rebuild the zoneIDs now!
-        local currentAPIVersion, lastCheckedZoneAPIVersion = didAPIVersionChangeCheck()
-        local forceZoneIdUpdateDueToAPIChange = (lastCheckedZoneAPIVersion == nil or lastCheckedZoneAPIVersion ~= currentAPIVersion) or false
---d("[LibZone]forceZoneIdUpdateDueToAPIChange: " .. tostring(forceZoneIdUpdateDueToAPIChange))
-
-
-        --Get localized (client language) zone data and add missing delta to SavedVariables table LibZone_Localized_SV_Data[clientLang] (No reloadui!)
-        getAllZoneDataById(lib, forceZoneIdUpdateDueToAPIChange, false)
-        --Do we have already datamined and localized zoneData given for languages? -> See SV table LibZone_Localized_SV_Data
-        -->Will be enriched within function getAllZoneDataById too, if any zoneIds are missing in SV table LibZone_SV_Data
-        checkLanguagesZoneDataAndTransferFromSavedVariables()
-
-        --Build the LibSlashCommander autocomplete stuff, if LibSlashCommander is present and activated
-        -->See file LibZone_AutoCompletion.lua
-        lib.LSC = lib.LSC or LibSlashCommander
-        lib:buildLSCZoneSearchAutoComplete()
-    end
+    --Get localized (client language) zone data and add missing delta to SavedVariables table LibZone_Localized_SV_Data[clientLang] (No reloadui!)
+    --and: Build the LibSlashCommander autocomplete stuff, if LibSlashCommander is present and activated
+    --> Moved to "first API usage" (deferred initialization) so console addons can save some ms CPU loading time on addon init -> See function zoneDataReadyCheckOnce
+    lib.LSC = lib.LSC or LibSlashCommander
+    --Build the LibSlashCommander autocomplete stuff, if LibSlashCommander is present and activated (but next frame so CPU load time isn't affected as much)
+    -->See file LibZone_AutoCompletion.lua
+    zo_callLater(function() lib:buildLSCZoneSearchAutoComplete() end, 0)
 end
 
 --Load the addon now
-EVENT_MANAGER:UnregisterForEvent(libraryName, EVENT_ADD_ON_LOADED)
 EVENT_MANAGER:RegisterForEvent(libraryName, EVENT_ADD_ON_LOADED, OnLibraryLoaded)

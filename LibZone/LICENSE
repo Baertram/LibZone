@@ -1,0 +1,47 @@
+PROPRIETARY LICENSE AGREEMENT
+
+Copyright (c) 2026 Baertram (baertram.esoui@gmx.net). All rights reserved.
+
+TERMS AND CONDITIONS
+
+1. STRICT RESTRICTIONS
+Except as explicitly permitted in Section 2 (Exclusive Website Hosting Exception) and Section 4 (What Is Allowed),
+any and all users are strictly prohibited from doing any of the following without prior written consent from the
+Copyright Holder:
+- Copying, duplicating, or replicating this software or any part of its source code.
+- Modifying, altering, transforming, or creating derivative works based upon this software.
+- Redistributing, publishing, hosting, or releasing this software or any versions of it on any platform, website, server,
+  or network.
+
+2. EXCLUSIVE WEBSITE HOSTING EXCEPTION
+The website www.esoui.com and its direct operational infrastructure (e.g. Minion, the addon manager) are granted the
+permission to host, display, and distribute this software UNCHANGED ("as is") for end-user download.
+In addition, the website mods.bethesda.net/en/elderscrollsonline/ (any language) and its direct operational infrastructure
+(e.g. ingame console addons manager) are granted the permission to host, display, and distribute this software UNCHANGED
+("as is") for console end-user download.
+
+This exception does NOT grant any rights to individual users, third parties, or other websites to copy, redistribute,
+or modify the software outside of the terms specified in this agreement.
+All other third-party redistribution remains strictly prohibited.
+
+3. PRIOR WRITTEN CONSENT REQUIRED
+If you wish to copy, modify, distribute, or host this software under any circumstances not covered by the exceptions
+in Section 2 or Section 4, you must contact the Copyright Holder (Baertram) directly and obtain explicit, written
+approval PRIOR to taking any action.
+
+Requests for permission must be sent via email to: baertram.esoui@gmx.net
+
+4. WHAT IS ALLOWED
+Notwithstanding the restrictions in Section 1, you are permitted to:
+- Distribute the software unchanged together with other Elder Scrolls Online addons.
+- Use the software from other Elder Scrolls Online addons via its provided API (Application Programming Interface), if
+  any such API exists.
+- Fork the software on collaborative tools (e.g. GitHub), provided that the software repository is publicly accessible,
+  and contribute to it (fixing bugs, adding new features). Each contribution will be reviewed by the software owner,
+  and may be integrated into the official software or not at the owner's sole discretion.
+
+5. NO WARRANTY
+THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
