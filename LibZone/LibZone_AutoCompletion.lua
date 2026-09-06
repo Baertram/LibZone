@@ -22,7 +22,6 @@ local formattedZoneStr = "%s|caaaaaa - %s"
 ------------------------------------------------------------------------
 -- 	Library - Chat autocomplete functions (using LibSlashCommander)
 ------------------------------------------------------------------------
-
 local MyAutoCompleteProvider = {}
 MyAutoCompleteProvider = lib.LSC.AutoCompleteProvider:Subclass()
 function MyAutoCompleteProvider:New(resultList, lookupList, lang)
@@ -63,10 +62,11 @@ function lib:buildAutoComplete(command, langToUse)
     if localizedZoneDataForLang ~= nil then
         local repStr = "·"
         local langUpper = translations[langToUse][langToUse]
+
         for zoneId, zoneName in pairs(localizedZoneDataForLang) do
             --Check if the zoneIds are blacklisted
             local isZoneBlacklisted = blacklistedZoneIdsForAutoCompletion[zoneId] or false
-            if not isZoneBlacklisted then
+            if not isZoneBlacklisted and zoneName ~= nil and zoneName ~= "" then
                 --Replace the spaces in the zone name so LibSlashCommander will find them with the auto complete properly
                 --try to use %s instead of just a space. if that doesn't work use [\t-\r ] instead
                 local zoneNameNoSpaces = string.gsub(zoneName, "%s+", repStr)
@@ -79,6 +79,7 @@ function lib:buildAutoComplete(command, langToUse)
                     zoneSubCommand:SetCallback(function(input)
                         StartChatInput(input)
                     end)
+
                     --Get the translated zone names
                     local otherLanguagesZoneName = {} -- Only a temp table
                     local otherLanguagesNoDuplicateZoneName = {} -- Only a temp table
@@ -136,6 +137,8 @@ function lib:buildLSCZoneSearchAutoComplete()
         local transForLang = translations[tos(lang)]
         if transForLang ~= nil and transForLang["slashCommandDescription"] ~= nil then
             lib.commandsLzt[tos(lang)] = lib.LSC:Register({"/lzt" .. tos(lang), "/transz" .. tos(lang)}, nil, libName .. transForLang["slashCommandDescription"])
+
+
             lib:buildAutoComplete(lib.commandsLzt[tos(lang)], tos(lang))
         end
     end

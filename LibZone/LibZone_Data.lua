@@ -194,12 +194,6 @@ local preloadedZoneNames = {
 --Use metatables to fill-up missing zoneIds of languages missing entries with the English ones
 local referenceZoneNamesEN = preloadedZoneNames["en"]
 --Vanilla client languages, should not need this!
---setmetatable(preloadedZoneNames["de"], {__index = referenceZoneNamesEN})
---setmetatable(preloadedZoneNames["fr"], {__index = referenceZoneNamesEN})
---setmetatable(preloadedZoneNames["ru"], {__index = referenceZoneNamesEN})
---setmetatable(preloadedZoneNames["es"], {__index = referenceZoneNamesEN})
---setmetatable(preloadedZoneNames["zh"], {__index = referenceZoneNamesEN})
-
 ----Fill up special or custom languages missing with EN zone data
 --Special client languages
 setmetatable(preloadedZoneNames["jp"], {__index = referenceZoneNamesEN})

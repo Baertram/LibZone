@@ -174,11 +174,11 @@ local function checkLanguagesZoneDataAndTransferFromSavedVariables()
     --Is the preloaded data given and the zoneIds table as well?
     if preloadedZoneNamesTable ~= nil and zoneData ~= nil and supportedLanguages ~= nil then
         --Only check the currently active language as only this one might have been scanned and updated with function LibZone:GetAllZoneDataById() before!
-        if checkIfLanguageIsSupported(clientLang) == true and localizedZoneDataSV and localizedZoneDataSV[clientLang] then
+        local localizedZoneDataSVForLanguage = (localizedZoneDataSV and localizedZoneDataSV[clientLang]) or nil
+        if checkIfLanguageIsSupported(clientLang) == true and localizedZoneDataSVForLanguage then
             --Get the preloaded data for the supported language (client language)
             local preloadedZoneNamesForLanguage = preloadedZoneNamesTable[clientLang]
             if preloadedZoneNamesForLanguage then
-                local localizedZoneDataSVForLanguage = localizedZoneDataSV[clientLang]
                 --Check for each zoneId in the zoneData table
                 checkMaxZoneIndicesAndIds()
                 local maxZoneIds = lib.maxZoneIds
@@ -194,8 +194,8 @@ local function checkLanguagesZoneDataAndTransferFromSavedVariables()
             else
                 --Table with the zoneNames in this language is missing in total
                 --So get the data from the SavedVariables once (if it exists)
-                if localizedZoneDataSV and localizedZoneDataSV[clientLang] then
-                    preloadedZoneNamesForLanguage = localizedZoneDataSV[clientLang]
+                if localizedZoneDataSVForLanguage then
+                    preloadedZoneNamesForLanguage = localizedZoneDataSVForLanguage
                     --Kyoma on 2020-04-13: Assigned table preloadedZoneNamesForLanguage is not updating referenced table preloadedZoneNamesTable[clientLang], so directly access it
                     --preloadedZoneNamesTable[clientLang] = localizedZoneDataSV[clientLang]
                 end
@@ -267,7 +267,6 @@ local getCurrentZoneIds = lib.GetCurrentZoneIds
 -->reBuildNew: Boolean [true=Rebuild the zoneData for all zones, even if they already exist / false=Skip already existing zoneIds]
 -->doReloadUI: Boolean [true=If at least one zoneId was added/updated, do a ReloadUI() at the end to update the SavaedVariables now / false=No autoamtic ReloadUI()]
 function lib:GetAllZoneDataById(reBuildNew, doReloadUI)
-d("[LibZone]GetAllZoneDataById")
     local doDebug = false -- todo disable again after testing
     reBuildNew = reBuildNew or false
     doReloadUI = doReloadUI or false
@@ -382,8 +381,6 @@ end
 local getAllZoneDataById = lib.GetAllZoneDataById
 
 local function zoneDataReadyCheckOnce()
-    d("[LibZone]zoneDataReadyCheckOnce- doneOnce: " ..tos(wasZoneDataReadyCheckDoneOnce))
-
     if wasZoneDataReadyCheckDoneOnce then return end
     wasZoneDataReadyCheckDoneOnce = true
 
@@ -1225,6 +1222,13 @@ end
 ------------------------------------------------------------------------
 -- 	Addon/Librray load functions
 ------------------------------------------------------------------------
+local autoCompleteWasBuild = false
+local function buildAutoCompleteSlashCommandsDeferred()
+    if autoCompleteWasBuild then return end
+    zoneDataReadyCheckOnce()
+    autoCompleteWasBuild = true
+    zo_callLater(function() lib:buildLSCZoneSearchAutoComplete() end, 0)
+end
 
 
 --Addon loaded function
@@ -1246,9 +1250,20 @@ local function OnLibraryLoaded(event, name)
     --and: Build the LibSlashCommander autocomplete stuff, if LibSlashCommander is present and activated
     --> Moved to "first API usage" (deferred initialization) so console addons can save some ms CPU loading time on addon init -> See function zoneDataReadyCheckOnce
     lib.LSC = lib.LSC or LibSlashCommander
-    --Build the LibSlashCommander autocomplete stuff, if LibSlashCommander is present and activated (but next frame so CPU load time isn't affected as much)
+    --Build the LibSlashCommander autocomplete stuff, if LibSlashCommander is present and activated
     -->See file LibZone_AutoCompletion.lua
-    zo_callLater(function() lib:buildLSCZoneSearchAutoComplete() end, 0)
+    --On modern consoles: Will only be done once a user types into the chat the first time
+    --On keyboard this will be loaded directly as we do not have any CPU limit for addon loaing
+    if ZO_IsConsoleOrGameCoreUI() then
+        if ZO_GamepadTextChatTextEntryEditBox ~= nil then
+            ZO_PreHookHandler(ZO_GamepadTextChatTextEntryEditBox, "OnTextChanged", function()
+                if autoCompleteWasBuild then return end
+                buildAutoCompleteSlashCommandsDeferred()
+            end)
+        end
+    else
+        buildAutoCompleteSlashCommandsDeferred()
+    end
 end
 
 --Load the addon now
