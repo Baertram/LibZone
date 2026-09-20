@@ -1,3 +1,6 @@
+--Only enabled on PC and XBOX play anywhere
+if ZO_IsConsoleOrGameCoreUI() then return end
+
 LibZone = LibZone or {}
 
 local lib = LibZone
@@ -142,8 +145,6 @@ function lib:buildLSCZoneSearchAutoComplete()
         local transForLang = translations[tos(lang)]
         if transForLang ~= nil and transForLang["slashCommandDescription"] ~= nil then
             lib.commandsLzt[tos(lang)] = lib.LSC:Register({"/lzt" .. tos(lang), "/transz" .. tos(lang)}, nil, libName .. transForLang["slashCommandDescription"])
-
-
             lib:buildAutoComplete(lib.commandsLzt[tos(lang)], tos(lang))
         end
     end

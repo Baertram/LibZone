@@ -14,7 +14,7 @@
 LibZone_Constants.lua
 
 ##Optional: If library LibSlashCommander is loaded: Chat auto completion for zone names
-LibZone_AutoCompletion.lua
+PC/LibZone_AutoCompletion.lua
 
 ##LibZone API functions
 LibZone.lua

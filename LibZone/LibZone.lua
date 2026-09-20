@@ -1249,11 +1249,13 @@ local function OnLibraryLoaded(event, name)
     --Get localized (client language) zone data and add missing delta to SavedVariables table LibZone_Localized_SV_Data[clientLang] (No reloadui!)
     --and: Build the LibSlashCommander autocomplete stuff, if LibSlashCommander is present and activated
     --> Moved to "first API usage" (deferred initialization) so console addons can save some ms CPU loading time on addon init -> See function zoneDataReadyCheckOnce
-    lib.LSC = lib.LSC or LibSlashCommander
+    lib.LSC = LibSlashCommander
     --Build the LibSlashCommander autocomplete stuff, if LibSlashCommander is present and activated
     -->See file LibZone_AutoCompletion.lua
     --On modern consoles: Will only be done once a user types into the chat the first time
     --On keyboard this will be loaded directly as we do not have any CPU limit for addon loaing
+    --[[
+    --- !!!!! ---> Disabled for now as it will eat Console AddOn memory to build the /lztde /lzten etc. translation slash commands ~35MB :-( !!!
     if ZO_IsConsoleOrGameCoreUI() then
         if ZO_GamepadTextChatTextEntryEditBox ~= nil then
             ZO_PreHookHandler(ZO_GamepadTextChatTextEntryEditBox, "OnTextChanged", function()
@@ -1265,6 +1267,9 @@ local function OnLibraryLoaded(event, name)
     else
         buildAutoCompleteSlashCommandsDeferred()
     end
+    ]]
+    --Only enabled on PC and XBOX game everywhere
+    if not ZO_IsConsoleOrGameCoreUI then buildAutoCompleteSlashCommandsDeferred() end
 end
 
 --Load the addon now
