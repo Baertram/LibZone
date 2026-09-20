@@ -387,7 +387,7 @@ local function zoneDataReadyCheckOnce()
     --Did the API version change since last zoneID check? Then rebuild the zoneIDs now!
     local currentAPIVersion, lastCheckedZoneAPIVersion = didAPIVersionChangeCheck()
     local forceZoneIdUpdateDueToAPIChange = (lastCheckedZoneAPIVersion == nil or lastCheckedZoneAPIVersion ~= currentAPIVersion) or false
-    --d("[LibZone]forceZoneIdUpdateDueToAPIChange: " .. tos(forceZoneIdUpdateDueToAPIChange))
+--d("[LibZone]forceZoneIdUpdateDueToAPIChange: " .. tos(forceZoneIdUpdateDueToAPIChange))
 
 
     --Get localized (client language) zone data and add missing delta to SavedVariables table LibZone_Localized_SV_Data[clientLang] (No reloadui!)
@@ -1257,6 +1257,7 @@ local function OnLibraryLoaded(event, name)
     if ZO_IsConsoleOrGameCoreUI() then
         if ZO_GamepadTextChatTextEntryEditBox ~= nil then
             ZO_PreHookHandler(ZO_GamepadTextChatTextEntryEditBox, "OnTextChanged", function()
+--d("[LibZone]Gamepad Chat Text Editbox - OnTextChanged - autoCompleteWasBuild: " ..tos(autoCompleteWasBuild))
                 if autoCompleteWasBuild then return end
                 buildAutoCompleteSlashCommandsDeferred()
             end)
